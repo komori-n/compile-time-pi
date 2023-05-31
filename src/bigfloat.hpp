@@ -11,9 +11,9 @@ class BigFloat {
       : precision_{precision}, significand_{std::move(significand)}, exponent_{exponent} {}
   constexpr BigFloat() = delete;
   constexpr BigFloat(const BigFloat&) = delete;
-  constexpr BigFloat(BigFloat&&) noexcept = delete;
+  constexpr BigFloat(BigFloat&&) noexcept = default;
   constexpr BigFloat& operator=(const BigFloat&) = delete;
-  constexpr BigFloat& operator=(BigFloat&&) noexcept = delete;
+  constexpr BigFloat& operator=(BigFloat&&) noexcept = default;
   constexpr ~BigFloat() = default;
 
   friend constexpr BigFloat operator+(BigFloat lhs, BigFloat rhs) {
@@ -43,7 +43,7 @@ class BigFloat {
     return lhs;
   }
 
-  friend constexpr BigFloat operator-(BigFloat lhs, BigFloat rhs) { return operator+(lhs, -rhs); }
+  friend constexpr BigFloat operator-(BigFloat lhs, BigFloat rhs) { return operator+(std::move(lhs), -std::move(rhs)); }
   friend constexpr BigFloat operator-(BigFloat rhs) noexcept {
     rhs.sign_ = ~rhs.sign_;
     return rhs;
@@ -51,14 +51,44 @@ class BigFloat {
 
   constexpr BigFloat& operator*=(const BigFloat& rhs) {
     significand_ = Multiply(significand_, rhs.significand_);
-    sign_ = lhs.sign_ ^ rhs.sign_;
+    sign_ = sign_ ^ rhs.sign_;
     precision_ = std::min(precision_, rhs.precision_);
 
     Simplify();
     return *this;
   }
 
-  friend constexpr BigFloat operator*(BigFloat lhs, BigFloat rhs) { return lhs *= rhs; }
+  friend constexpr BigFloat operator*(BigFloat lhs, BigFloat rhs) {
+    lhs *= std::move(rhs);
+    return lhs;
+  }
+
+  friend constexpr std::weak_ordering operator<=>(const BigFloat& lhs, const BigFloat& rhs) noexcept {
+    if (lhs.sign_ == Sign::kNegative && rhs.sign_ == Sign::kPositive) {
+      return std::weak_ordering::less;
+    } else if (lhs.sign_ == Sign::kPositive && rhs.sign_ == Sign::kNegative) {
+      return std::weak_ordering::greater;
+    } else {
+      auto ans = std::strong_ordering::equal;
+      if (lhs.exponent_ < rhs.exponent_) {
+        ans = (lhs.significand_ >> (rhs.exponent_ - lhs.exponent_)) <=> rhs.significand_;
+      } else {
+        ans = lhs.significand_ <=> (rhs.significand_ >> (rhs.exponent_ - lhs.exponent_));
+      }
+
+      if (lhs.sign_ == Sign::kPositive) {
+        return ans;
+      }
+
+      if (ans == std::strong_ordering::equal) {
+        return std::weak_ordering::equivalent;
+      } else if (ans == std::strong_ordering::less) {
+        return std::weak_ordering::greater;
+      } else {
+        return std::weak_ordering::less;
+      }
+    }
+  }
 
  private:
   constexpr void ExtendSignificand(int64_t exponent) {
@@ -71,7 +101,7 @@ class BigFloat {
     return bit_width - precision_;
   }
 
-  constexpr void Simplify() const {
+  constexpr void Simplify() {
     const auto lowest_reliable_bit = LowestReliableBit();
     if (lowest_reliable_bit > 64) {
       const auto shift = lowest_reliable_bit - 1;
