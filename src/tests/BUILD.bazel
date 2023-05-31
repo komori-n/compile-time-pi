@@ -1,0 +1,12 @@
+cc_test(
+    name = "ssa_test",
+    srcs = [
+        "biguint_test.cpp",
+        "gf2n1_test.cpp",
+        "ssa_test.cpp",
+    ],
+    deps = [
+        "//src:ssa",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
