@@ -2,6 +2,7 @@
 #define KOMORI_BIGFLOAT_HPP_
 
 #include "komori/biguint.hpp"
+#include "komori/ssa.hpp"
 
 namespace komori {
 class BigFloat {
@@ -37,9 +38,27 @@ class BigFloat {
     }
 
     lhs.precision_ = static_cast<int64_t>(lhs.significand_.NumberOfBits()) - lowest_reliable_bit;
+    lhs.Simplify();
 
     return lhs;
   }
+
+  friend constexpr BigFloat operator-(BigFloat lhs, BigFloat rhs) { return operator+(lhs, -rhs); }
+  friend constexpr BigFloat operator-(BigFloat rhs) noexcept {
+    rhs.sign_ = ~rhs.sign_;
+    return rhs;
+  }
+
+  constexpr BigFloat& operator*=(const BigFloat& rhs) {
+    significand_ = Multiply(significand_, rhs.significand_);
+    sign_ = lhs.sign_ ^ rhs.sign_;
+    precision_ = std::min(precision_, rhs.precision_);
+
+    Simplify();
+    return *this;
+  }
+
+  friend constexpr BigFloat operator*(BigFloat lhs, BigFloat rhs) { return lhs *= rhs; }
 
  private:
   constexpr void ExtendSignificand(int64_t exponent) {
@@ -52,10 +71,27 @@ class BigFloat {
     return bit_width - precision_;
   }
 
+  constexpr void Simplify() const {
+    const auto lowest_reliable_bit = LowestReliableBit();
+    if (lowest_reliable_bit > 64) {
+      const auto shift = lowest_reliable_bit - 1;
+      significand_ >>= shift;
+      exponent_ += shift;
+    }
+  }
+
   enum class Sign : uint8_t {
     kPositive,
     kNegative,
   };
+
+  friend constexpr Sign operator~(Sign lhs) noexcept {
+    return lhs == Sign::kPositive ? Sign::kNegative : Sign::kPositive;
+  }
+
+  friend constexpr Sign operator^(Sign lhs, Sign rhs) noexcept {
+    return lhs == rhs ? Sign::kPositive : Sign::kNegative;
+  }
 
   int64_t precision_{};
 
