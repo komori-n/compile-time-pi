@@ -6,8 +6,8 @@
 namespace komori {
 class BigFloat {
  public:
-  constexpr explicit BigFloat(uint64_t precision_words, BigUint significand = BigUint{}, int64_t exponent = 0)
-      : precision_{precision_words}, significand_{std::move(significand)}, exponent_{exponent} {}
+  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, int64_t exponent = 0)
+      : precision_{precision}, significand_{std::move(significand)}, exponent_{exponent} {}
   constexpr BigFloat() = delete;
   constexpr BigFloat(const BigFloat&) = delete;
   constexpr BigFloat(BigFloat&&) noexcept = delete;
@@ -17,10 +17,12 @@ class BigFloat {
 
   friend constexpr BigFloat operator+(BigFloat lhs, BigFloat rhs) {
     if (lhs.exponent_ < rhs.exponent_) {
-      lhs.ModifyExponent(rhs.exponent_);
+      rhs.ExtendSignificand(lhs.exponent_);
     } else if (lhs.exponent_ > rhs.exponent_) {
-      rhs.ModifyExponent(lhs.exponent_);
+      lhs.ExtendSignificand(rhs.exponent_);
     }
+
+    const auto lowest_reliable_bit = std::max(lhs.LowestReliableBit(), rhs.LowestReliableBit());
 
     // Calculate lhs += rhs. `rhs` may be moved during the addition.
     if (lhs.sign_ == rhs.sign_) {
@@ -34,21 +36,28 @@ class BigFloat {
       }
     }
 
-    // TODO: Adjust result based on precision
-    // TODO: Adjust precision
+    lhs.precision_ = static_cast<int64_t>(lhs.significand_.NumberOfBits()) - lowest_reliable_bit;
 
     return lhs;
   }
 
  private:
-  constexpr void ModifyExponent(int64_t precision) {}
+  constexpr void ExtendSignificand(int64_t exponent) {
+    significand_ <<= exponent_ - exponent;
+    exponent_ = exponent;
+  }
+
+  constexpr int64_t LowestReliableBit() const {
+    const auto bit_width = static_cast<int64_t>(significand_.NumberOfBits());
+    return bit_width - precision_;
+  }
 
   enum class Sign : uint8_t {
     kPositive,
     kNegative,
   };
 
-  uint64_t precision_{};
+  int64_t precision_{};
 
   BigUint significand_{};
   int64_t exponent_{0};
