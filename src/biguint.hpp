@@ -2,6 +2,7 @@
 #define KOMORI_BIGUINT_HPP_
 
 #include <algorithm>
+#include <bit>
 #include <cstdint>
 #include <exception>
 #include <iomanip>
@@ -403,6 +404,16 @@ class BigUint : public std::vector<uint64_t> {
 
   friend constexpr bool operator==(const BigUint& lhs, const BigUint& rhs) noexcept = default;
   // </arithmetic operators>
+
+  constexpr uint64_t NumberOfBits() const {
+    if (this->empty()) {
+      return 0;
+    }
+
+    const uint64_t num_of_bits_back = std::bit_width(this->back());
+    const uint64_t num_of_bits_except_back = (this->size() - 1) * 64;
+    return num_of_bits_back + num_of_bits_except_back;
+  }
 
  private:
   constexpr BigUint& TrimLeadingZeros() noexcept {

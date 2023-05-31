@@ -159,3 +159,10 @@ TEST(BigUint, Comparison) {
   EXPECT_TRUE(x != y);
   EXPECT_TRUE(x > y);
 }
+
+TEST(BigUint, NumberOfBits) {
+  EXPECT_EQ(BigUint{}.NumberOfBits(), 0);
+  EXPECT_EQ(BigUint({0x1}).NumberOfBits(), 1);
+  EXPECT_EQ(BigUint({0x334}).NumberOfBits(), std::bit_width(0x334ull));
+  EXPECT_EQ(BigUint({0x0, 0x1}).NumberOfBits(), 65);
+}
