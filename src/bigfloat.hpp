@@ -5,8 +5,20 @@
 #include "komori/ssa.hpp"
 
 namespace komori {
+/**
+ * @brief An arbitrary precision floating number
+ * @detail
+ * This class represents a real number by the following form:
+ *    (sign) * significand * 2^(exponent)
+ */
 class BigFloat {
  public:
+  /**
+   * @brief Constructor
+   * @param precision The precision of the number
+   * @param significand The significand part of the number. (default is zero)
+   * @param exponent The exponent part of the number. (default is zero)
+   */
   constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, int64_t exponent = 0)
       : precision_{precision}, significand_{std::move(significand)}, exponent_{exponent} {}
   constexpr BigFloat() = delete;
@@ -16,9 +28,20 @@ class BigFloat {
   constexpr BigFloat& operator=(BigFloat&&) noexcept = default;
   constexpr ~BigFloat() = default;
 
+  /**
+   * @brief Judge if the number is non-negative(zero or positive) or not
+   */
   constexpr bool IsNonNegative() const { return sign_ != Sign::kNegative || significand_.IsZero(); }
 
+  /**
+   * @brief Add two numbers
+   * @param lhs The first number to be added
+   * @param rhs The second number to be added
+   * @return The result of the addition
+   * @detail We take the values instead of the (lvalue) references in order to keep the implementation simple.
+   */
   friend constexpr BigFloat operator+(BigFloat lhs, BigFloat rhs) {
+    // Make `exponent_` the same value. The one that has greater `exponent_` should be shifted.
     if (lhs.exponent_ < rhs.exponent_) {
       rhs.ExtendSignificand(lhs.exponent_);
     } else if (lhs.exponent_ > rhs.exponent_) {
@@ -122,6 +145,11 @@ class BigFloat {
   }
 
  private:
+  /**
+   * @brief Multiply 2 ** `exponent_ - exponent` to the significand part, and set `exponent` to the exponent part
+   * @param exponent The exponent part after the conversion
+   * @pre exponent < exponent_
+   */
   constexpr void ExtendSignificand(int64_t exponent) {
     significand_ <<= exponent_ - exponent;
     exponent_ = exponent;
@@ -141,23 +169,34 @@ class BigFloat {
     }
   }
 
+  /// Sign of the number. Note that all numbers including zero is considered to be positive or negative. Zero has two
+  /// representation: +0 and -0.
   enum class Sign : uint8_t {
-    kPositive,
-    kNegative,
+    kPositive,  ///< Positive
+    kNegative,  ///< Negative
   };
 
+  /// Flip a sign
   friend constexpr Sign operator~(Sign lhs) noexcept {
     return lhs == Sign::kPositive ? Sign::kNegative : Sign::kPositive;
   }
 
+  /// Multiply signs
   friend constexpr Sign operator^(Sign lhs, Sign rhs) noexcept {
     return lhs == rhs ? Sign::kPositive : Sign::kNegative;
   }
 
+  /// The number of reliable digits (precision) of the number. The value may be greater or less than the bid width of
+  /// `significand_`.
+  ///
+  /// We use a signed type instead of an unsigned type because it's frequently used with `exponent_`, which is signed.
   int64_t precision_{};
 
+  /// The significand part of the number
   BigUint significand_{};
+  /// The exponent part of the number
   int64_t exponent_{0};
+  /// The sign of the number
   Sign sign_{Sign::kPositive};
 };
 }  // namespace komori
