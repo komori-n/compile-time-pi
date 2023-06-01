@@ -5,6 +5,19 @@
 using komori::BigFloat;
 using komori::BigUint;
 
+TEST(BigFloat, IsNonNegative) {
+  const std::array<std::pair<BigFloat, bool>, 4> test_cases{{
+      {BigFloat(100), true},
+      {-BigFloat(100), true},
+      {BigFloat(100, BigUint({0x334}), -2), true},
+      {-BigFloat(100, BigUint({0x334}), -2), false},
+  }};
+
+  for (const auto& [input, expected] : test_cases) {
+    EXPECT_EQ(input.IsNonNegative(), expected);
+  }
+}
+
 TEST(BigFloat, Add) {
   BigFloat zero(1000);
   BigFloat x(10, BigUint({0b1010101011}), 2);

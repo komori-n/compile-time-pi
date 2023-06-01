@@ -16,6 +16,8 @@ class BigFloat {
   constexpr BigFloat& operator=(BigFloat&&) noexcept = default;
   constexpr ~BigFloat() = default;
 
+  constexpr bool IsNonNegative() const { return sign_ != Sign::kNegative || significand_.IsZero(); }
+
   friend constexpr BigFloat operator+(BigFloat lhs, BigFloat rhs) {
     if (lhs.exponent_ < rhs.exponent_) {
       rhs.ExtendSignificand(lhs.exponent_);
