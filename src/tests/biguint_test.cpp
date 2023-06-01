@@ -4,6 +4,12 @@
 
 using komori::BigUint;
 
+TEST(BigUint, IsZero) {
+  EXPECT_TRUE(BigUint{}.IsZero());
+  EXPECT_FALSE(BigUint({0x334ULL}).IsZero());
+  EXPECT_FALSE(BigUint({0x334ULL, 0x264}).IsZero());
+}
+
 TEST(BigUint, AddAssign2Pow) {
   const BigUint x({0x8000000000000000ULL});
 

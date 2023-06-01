@@ -112,7 +112,7 @@ class BigFloat {
     }
 
     auto ans = significand_.ShiftMod2Pow(0, static_cast<uint64_t>(-exponent_));
-    if (ans.empty()) {
+    if (ans.IsZero()) {
       return std::make_pair(BigUint{}, 0);
     } else {
       return std::make_pair(std::move(ans), exponent_);

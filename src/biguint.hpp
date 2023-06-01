@@ -27,6 +27,9 @@ class BigUint : public std::vector<uint64_t> {
   constexpr BigUint& operator=(BigUint&&) noexcept = default;
   constexpr ~BigUint() = default;
 
+  /// Judge if the number is zero(Don't use `empty()` directly outside of this class)
+  constexpr bool IsZero() const noexcept { return empty(); }
+
   /**
    * @brief *this += 2 ** n
    * @param n Index of power of 2
@@ -406,7 +409,8 @@ class BigUint : public std::vector<uint64_t> {
   // </arithmetic operators>
 
   constexpr uint64_t NumberOfBits() const {
-    if (this->empty()) {
+    // Before calling `this->back()`, we must check if the number is zero.
+    if (IsZero()) {
       return 0;
     }
 
