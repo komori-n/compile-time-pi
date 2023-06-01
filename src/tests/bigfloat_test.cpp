@@ -26,23 +26,26 @@ TEST(BigFloat, IntegerPart) {
 }
 
 TEST(BigFloat, FractionalPart) {
-  const BigFloat x(334);
-  const auto res_x = x.FractionalPart();
-  EXPECT_EQ(res_x.first, BigUint{});
-  EXPECT_EQ(res_x.second, 0);
+  struct TestCase {
+    BigFloat input;
+    BigUint expected_first;
+    int64_t expected_second;
+  };
 
-  const BigFloat y(334, BigUint({0x334}), 20);
-  const auto res_y = y.FractionalPart();
-  EXPECT_EQ(res_y.first, BigUint{});
-  EXPECT_EQ(res_y.second, 0);
+  const std::array<TestCase, 4> test_cases = {{
+      // zero
+      {BigFloat(334), BigUint{}, 0},
+      // Integer
+      {BigFloat(334, BigUint({0x334}), 20), BigUint{}, 0},
+      // 0x3.34
+      {BigFloat(334, BigUint({0x334}), -8), BigUint({0x34}), -8},
+      // 0x0.00 .. 0334
+      {BigFloat(334, BigUint({0x334}), -100), BigUint({0x334}), -100},
+  }};
 
-  const BigFloat z(334, BigUint({0x334}), -8);
-  const auto res_z = z.FractionalPart();
-  EXPECT_EQ(res_z.first, BigUint{0x34});
-  EXPECT_EQ(res_z.second, -8);
-
-  const BigFloat w(334, BigUint({0x334}), -100);
-  const auto res_w = w.FractionalPart();
-  EXPECT_EQ(res_w.first, BigUint{0x334});
-  EXPECT_EQ(res_w.second, -100);
+  for (const auto& [input, expected_first, expected_second] : test_cases) {
+    const auto res = input.FractionalPart();
+    EXPECT_EQ(res.first, expected_first);
+    EXPECT_EQ(res.second, expected_second);
+  }
 }
