@@ -10,9 +10,9 @@ class BigFloat {
   constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, int64_t exponent = 0)
       : precision_{precision}, significand_{std::move(significand)}, exponent_{exponent} {}
   constexpr BigFloat() = delete;
-  constexpr BigFloat(const BigFloat&) = delete;
+  constexpr BigFloat(const BigFloat&) = default;
   constexpr BigFloat(BigFloat&&) noexcept = default;
-  constexpr BigFloat& operator=(const BigFloat&) = delete;
+  constexpr BigFloat& operator=(const BigFloat&) = default;
   constexpr BigFloat& operator=(BigFloat&&) noexcept = default;
   constexpr ~BigFloat() = default;
 
@@ -87,6 +87,35 @@ class BigFloat {
       } else {
         return std::weak_ordering::less;
       }
+    }
+  }
+
+  /**
+   * @brief Get the integer part of the real number
+   * @return The integer part
+   */
+  constexpr BigUint IntegerPart() const {
+    if (exponent_ > 0) {
+      return significand_ << exponent_;
+    } else {
+      return significand_ >> (-exponent_);
+    }
+  }
+
+  /**
+   * @brief Get the fractional part of the real number
+   * @return The fractional part
+   */
+  constexpr std::pair<BigUint, int64_t> FractionalPart() const {
+    if (exponent_ >= 0) {
+      return std::make_pair(BigUint{}, 0);
+    }
+
+    auto ans = significand_.ShiftMod2Pow(0, static_cast<uint64_t>(-exponent_));
+    if (ans.empty()) {
+      return std::make_pair(BigUint{}, 0);
+    } else {
+      return std::make_pair(std::move(ans), exponent_);
     }
   }
 
