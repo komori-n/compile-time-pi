@@ -13,14 +13,31 @@ namespace komori {
  */
 class BigFloat {
  public:
+  /// Sign of the number. Note that all numbers including zero is considered to be positive or negative. Zero has two
+  /// representation: +0 and -0.
+  enum class Sign : uint8_t {
+    kPositive,  ///< Positive
+    kNegative,  ///< Negative
+  };
+
+  /// Flip a sign
+  friend constexpr Sign operator~(Sign lhs) noexcept {
+    return lhs == Sign::kPositive ? Sign::kNegative : Sign::kPositive;
+  }
+
+  /// Multiply signs
+  friend constexpr Sign operator^(Sign lhs, Sign rhs) noexcept {
+    return lhs == rhs ? Sign::kPositive : Sign::kNegative;
+  }
+
   /**
    * @brief Constructor
    * @param precision The precision of the number
    * @param significand The significand part of the number. (default is zero)
    * @param exponent The exponent part of the number. (default is zero)
    */
-  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, int64_t exponent = 0)
-      : precision_{precision}, significand_{std::move(significand)}, exponent_{exponent} {}
+  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{})
+      : precision_{precision}, significand_{std::move(significand)} {}
   constexpr BigFloat() = delete;
   constexpr BigFloat(const BigFloat&) = default;
   constexpr BigFloat(BigFloat&&) noexcept = default;
@@ -28,10 +45,8 @@ class BigFloat {
   constexpr BigFloat& operator=(BigFloat&&) noexcept = default;
   constexpr ~BigFloat() = default;
 
-  /**
-   * @brief Judge if the number is non-negative(zero or positive) or not
-   */
-  constexpr bool IsNonNegative() const { return sign_ != Sign::kNegative || significand_.IsZero(); }
+  constexpr Sign GetSign() const noexcept { return sign_; }
+  constexpr int64_t GetPrecision() const noexcept { return precision_; }
 
   /**
    * @brief Add two numbers
@@ -88,6 +103,26 @@ class BigFloat {
     return lhs;
   }
 
+  constexpr BigFloat& operator<<=(uint64_t rhs) noexcept {
+    exponent_ += static_cast<int64_t>(rhs);
+    return *this;
+  }
+
+  friend constexpr BigFloat operator<<(BigFloat lhs, uint64_t rhs) {
+    lhs <<= rhs;
+    return lhs;
+  }
+
+  constexpr BigFloat& operator>>=(uint64_t rhs) noexcept {
+    exponent_ -= static_cast<int64_t>(rhs);
+    return *this;
+  }
+
+  friend constexpr BigFloat operator>>(BigFloat lhs, uint64_t rhs) {
+    lhs >>= rhs;
+    return lhs;
+  }
+
   friend constexpr std::weak_ordering operator<=>(const BigFloat& lhs, const BigFloat& rhs) noexcept {
     if (lhs.sign_ == Sign::kNegative && rhs.sign_ == Sign::kPositive) {
       return std::weak_ordering::less;
@@ -116,7 +151,7 @@ class BigFloat {
   }
 
   /**
-   * @brief Get the integer part of the real number
+   * @brief Get the integer part of the abs of the number
    * @return The integer part
    */
   constexpr BigUint IntegerPart() const {
@@ -128,7 +163,7 @@ class BigFloat {
   }
 
   /**
-   * @brief Get the fractional part of the real number
+   * @brief Get the fractional part of the abs of the number
    * @return The fractional part
    */
   constexpr std::pair<BigUint, int64_t> FractionalPart() const {
@@ -167,23 +202,6 @@ class BigFloat {
       significand_ >>= shift;
       exponent_ += shift;
     }
-  }
-
-  /// Sign of the number. Note that all numbers including zero is considered to be positive or negative. Zero has two
-  /// representation: +0 and -0.
-  enum class Sign : uint8_t {
-    kPositive,  ///< Positive
-    kNegative,  ///< Negative
-  };
-
-  /// Flip a sign
-  friend constexpr Sign operator~(Sign lhs) noexcept {
-    return lhs == Sign::kPositive ? Sign::kNegative : Sign::kPositive;
-  }
-
-  /// Multiply signs
-  friend constexpr Sign operator^(Sign lhs, Sign rhs) noexcept {
-    return lhs == rhs ? Sign::kPositive : Sign::kNegative;
   }
 
   /// The number of reliable digits (precision) of the number. The value may be greater or less than the bid width of
