@@ -5,7 +5,20 @@
 using komori::BigFloat;
 using komori::BigUint;
 
-TEST(BigFloat, Sign) {
+TEST(BigFloat, SignOperators) {
+  using Sign = BigFloat::Sign;
+  const auto p = Sign::kPositive;
+  const auto n = Sign::kNegative;
+
+  EXPECT_EQ(~p, n);
+  EXPECT_EQ(~n, p);
+  EXPECT_EQ(p ^ p, p);
+  EXPECT_EQ(p ^ n, n);
+  EXPECT_EQ(n ^ p, n);
+  EXPECT_EQ(n ^ n, p);
+}
+
+TEST(BigFloat, SignAndUnaryMinus) {
   const BigFloat x(10);
   const BigFloat y(10, BigUint({0x334}));
 
