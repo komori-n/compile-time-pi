@@ -10,78 +10,11 @@ TEST(BigUint, IsZero) {
   EXPECT_FALSE((BigUint{0x334ULL, 0x264}).IsZero());
 }
 
-TEST(BigUint, AddAssign2Pow) {
-  const BigUint x{0x8000000000000000ULL};
-
-  auto y0 = x;
-  y0.AddAssign2PowN(0);
-  EXPECT_EQ(y0, BigUint{0x8000000000000001ULL});
-
-  auto y1 = x;
-  y1.AddAssign2PowN(63);
-  EXPECT_EQ(y1, (BigUint{0x0ULL, 0x1ULL}));
-
-  auto y2 = x;
-  y2.AddAssign2PowN(64);
-  EXPECT_EQ(y2, (BigUint{0x8000000000000000ULL, 0x1ULL}));
-}
-
-TEST(BigUint, ModAssign2PowN) {
-  BigUint x{0x4334334334334334ULL, 0x33ULL};
-
-  auto y0 = x;
-  y0.ModAssign2PowN(0);
-  EXPECT_EQ(y0, BigUint{});
-
-  auto y1 = x;
-  y1.ModAssign2PowN(64);
-  EXPECT_EQ(y1, BigUint{0x4334334334334334ULL});
-
-  auto y2 = x;
-  y2.ModAssign2PowN(65);
-  EXPECT_EQ(y2, (BigUint{0x4334334334334334ULL, 0x1ULL}));
-
-  auto y3 = x;
-  y3.ModAssign2PowN(256);
-  EXPECT_EQ(y3, x);
-}
-
-TEST(BigUint, ShiftMod2Pow) {
-  const BigUint x{0x1234567890abcdefULL, 0xfedcba0987654321ULL};
-
-  for (std::size_t i = 0; i < 256 + 1; ++i) {
-    for (std::size_t j = 0; j < 256 + 1; ++j) {
-      auto y = x;
-      y >>= i;
-      y.ModAssign2PowN(j);
-      EXPECT_EQ(x.ShiftMod2Pow(i, j), y) << i << " " << j;
-    }
-  }
-}
-
-TEST(BigUint, ShlAddAssign) {
-  const BigUint x{0x334ULL};
-  const BigUint y{0x264ULL};
-
-  auto z1 = x;
-  z1.ShlAddAssign(y, 0);
-  EXPECT_EQ(z1, BigUint{0x598ULL});
-
-  auto z2 = x;
-  z2.ShlAddAssign(y, 1);
-  EXPECT_EQ(z2, BigUint{0x334 + 0x264 * 2});
-
-  auto z3 = x;
-  z3.ShlAddAssign(y, 64);
-  EXPECT_EQ(z3, (BigUint{0x334ULL, 0x264ULL}));
-
-  auto z4 = x;
-  z4.ShlAddAssign(y, 65);
-  EXPECT_EQ(z4, (BigUint{0x334ULL, 0x264ULL * 2}));
-
-  auto z5 = x;
-  z5.ShlAddAssign(y, 128);
-  EXPECT_EQ(z5, (BigUint{0x334ULL, 0x0ULL, 0x264ULL}));
+TEST(BigUint, NumberOfBits) {
+  EXPECT_EQ(BigUint{}.NumberOfBits(), 0);
+  EXPECT_EQ(BigUint{0x1}.NumberOfBits(), 1);
+  EXPECT_EQ(BigUint{0x334}.NumberOfBits(), 10);
+  EXPECT_EQ((BigUint{0x0, 0x1}).NumberOfBits(), 65);
 }
 
 TEST(BigUint, Add) {
@@ -166,9 +99,76 @@ TEST(BigUint, Comparison) {
   EXPECT_TRUE(x > y);
 }
 
-TEST(BigUint, NumberOfBits) {
-  EXPECT_EQ(BigUint{}.NumberOfBits(), 0);
-  EXPECT_EQ(BigUint{0x1}.NumberOfBits(), 1);
-  EXPECT_EQ(BigUint{0x334}.NumberOfBits(), std::bit_width(0x334ull));
-  EXPECT_EQ((BigUint{0x0, 0x1}).NumberOfBits(), 65);
+TEST(BigUint, ModAssign2Pow) {
+  BigUint x{0x4334334334334334ULL, 0x33ULL};
+
+  auto y0 = x;
+  y0.ModAssign2Pow(0);
+  EXPECT_EQ(y0, BigUint{});
+
+  auto y1 = x;
+  y1.ModAssign2Pow(64);
+  EXPECT_EQ(y1, BigUint{0x4334334334334334ULL});
+
+  auto y2 = x;
+  y2.ModAssign2Pow(65);
+  EXPECT_EQ(y2, (BigUint{0x4334334334334334ULL, 0x1ULL}));
+
+  auto y3 = x;
+  y3.ModAssign2Pow(256);
+  EXPECT_EQ(y3, x);
+}
+
+TEST(BigUint, AddAssign2Pow) {
+  const BigUint x{0x8000000000000000ULL};
+
+  auto y0 = x;
+  y0.AddAssign2Pow(0);
+  EXPECT_EQ(y0, BigUint{0x8000000000000001ULL});
+
+  auto y1 = x;
+  y1.AddAssign2Pow(63);
+  EXPECT_EQ(y1, (BigUint{0x0ULL, 0x1ULL}));
+
+  auto y2 = x;
+  y2.AddAssign2Pow(64);
+  EXPECT_EQ(y2, (BigUint{0x8000000000000000ULL, 0x1ULL}));
+}
+
+TEST(BigUint, ShlAddAssign) {
+  const BigUint x{0x334ULL};
+  const BigUint y{0x264ULL};
+
+  auto z1 = x;
+  z1.ShlAddAssign(y, 0);
+  EXPECT_EQ(z1, BigUint{0x598ULL});
+
+  auto z2 = x;
+  z2.ShlAddAssign(y, 1);
+  EXPECT_EQ(z2, BigUint{0x334 + 0x264 * 2});
+
+  auto z3 = x;
+  z3.ShlAddAssign(y, 64);
+  EXPECT_EQ(z3, (BigUint{0x334ULL, 0x264ULL}));
+
+  auto z4 = x;
+  z4.ShlAddAssign(y, 65);
+  EXPECT_EQ(z4, (BigUint{0x334ULL, 0x264ULL * 2}));
+
+  auto z5 = x;
+  z5.ShlAddAssign(y, 128);
+  EXPECT_EQ(z5, (BigUint{0x334ULL, 0x0ULL, 0x264ULL}));
+}
+
+TEST(BigUint, ShiftMod2Pow) {
+  const BigUint x{0x1234567890abcdefULL, 0xfedcba0987654321ULL};
+
+  for (std::size_t i = 0; i < 256 + 1; ++i) {
+    for (std::size_t j = 0; j < 256 + 1; ++j) {
+      auto y = x;
+      y >>= i;
+      y.ModAssign2Pow(j);
+      EXPECT_EQ(x.ShiftMod2Pow(i, j), y) << i << " " << j;
+    }
+  }
 }

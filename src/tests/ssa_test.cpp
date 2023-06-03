@@ -32,16 +32,18 @@ TEST(SplittedInteger, NTT) {
 TEST(SplittedInteger, Multiply) {
   using komori::detail::MultiplySSA;
 
-  BigUint x;
-  BigUint y;
+  std::vector<uint64_t> x_vec;
+  std::vector<uint64_t> y_vec;
 
   std::mt19937_64 mt(334);
   std::uniform_int_distribution<std::uint64_t> dist;
   for (std::size_t i = 0; i < 100; ++i) {
-    x.push_back(dist(mt));
-    y.push_back(dist(mt));
+    x_vec.push_back(dist(mt));
+    y_vec.push_back(dist(mt));
   }
 
+  const BigUint x{std::move(x_vec)};
+  const BigUint y{std::move(y_vec)};
   const auto naive_ans = MultiplyNaive(x, y);
   const auto karatsuba_ans = MultiplyKaratsuba(x, y);
   const auto ssa_ans = MultiplySSA(x, y);

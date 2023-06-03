@@ -13,7 +13,7 @@
 #include "komori/common.hpp"
 
 namespace komori {
-class BigUint : public std::vector<uint64_t> {
+class BigUint : private std::vector<uint64_t> {
   using Base = std::vector<uint64_t>;
 
  public:
@@ -31,132 +31,36 @@ class BigUint : public std::vector<uint64_t> {
   constexpr BigUint& operator=(const BigUint&) = default;
   constexpr BigUint& operator=(BigUint&&) noexcept = default;
   constexpr ~BigUint() = default;
-
-  /// Judge if the number is zero(Don't use `empty()` directly outside of this class)
-  constexpr bool IsZero() const noexcept { return empty(); }
   // </Constructors>
 
-  /**
-   * @brief *this += 2 ** n
-   * @param n Index of power of 2
-   */
-  constexpr BigUint& AddAssign2PowN(std::size_t n) {
-    const auto word_idx = n / 64;
-    const auto bit_idx = n % 64;
-    if (word_idx >= this->size()) {
-      // Extend if (1 << n) is out of range
-      this->resize(word_idx + 1);
-    }
-
-    uint128_t carry = uint128_t{1} << bit_idx;
-    for (std::size_t i = word_idx; i < this->size() && carry > 0; ++i) {
-      const uint128_t sum = static_cast<uint128_t>((*this)[i]) + carry;
-      (*this)[i] = static_cast<uint64_t>(sum);
-      carry = sum >> 64;
-    }
-
-    if (carry > 0) {
-      this->push_back(carry);
-    }
-
-    return *this;
-  }
+  // <Basic Methods>
+  /// Judge if the number is zero(Don't use `empty()` directly outside of this class)
+  constexpr bool IsZero() const noexcept { return empty(); }
 
   /**
-   * @brief *this = *this % (2 ** n)
-   * @param n Index of power of 2
+   * @brief Count the number of bits to represent *this
+   * @return The number of bits to represent *this
+   *
+   * Examples:
+   * ```cpp
+   * BigUint{}.NumberOfBits();  // 0
+   * BigUint{0x334}.NumberOfBits();  // 10
+   * BigUint{0x0, 0x1}.NumberOfBits();  // 65
+   * ```
    */
-  constexpr BigUint& ModAssign2PowN(std::size_t n) {
-    const auto word_idx = n / 64;
-    const auto bit_idx = n % 64;
-
-    if (this->size() <= word_idx) {
-      return *this;
+  constexpr uint64_t NumberOfBits() const {
+    // Before calling `this->back()`, we must check if the number is zero.
+    if (IsZero()) {
+      return 0;
     }
 
-    this->resize(word_idx + 1);
-    this->back() &= (uint64_t{1} << bit_idx) - 1;
-    TrimLeadingZeros();
-
-    return *this;
+    const uint64_t num_of_bits_back = std::bit_width(this->back());
+    const uint64_t num_of_bits_except_back = (this->size() - 1) * 64;
+    return num_of_bits_back + num_of_bits_except_back;
   }
+  // </Basic Methods>
 
-  /**
-   * @brief (*this >> shift) % (2 ** mod)
-   */
-  constexpr BigUint ShiftMod2Pow(std::size_t shift, std::size_t mod) const {
-    const auto shift_word_idx = shift / 64;
-    const auto shift_bit_idx = shift % 64;
-    const auto mod_word_idx = mod / 64;
-    const auto mod_bit_idx = mod % 64;
-
-    if (this->size() < shift_word_idx) {
-      return BigUint{};
-    }
-
-    std::vector<uint64_t> ans;
-    ans.reserve(mod_word_idx + 1);
-    for (std::size_t i = 0; i < mod_word_idx + 1; ++i) {
-      const auto src_lower = i + shift_word_idx;
-      const auto src_upper = src_lower + 1;
-      if (src_lower < this->size()) {
-        uint128_t word = static_cast<uint128_t>((*this)[src_lower]);
-        if (src_upper < this->size()) {
-          word |= static_cast<uint128_t>((*this)[src_upper]) << 64;
-        }
-        ans.push_back(static_cast<uint64_t>(word >> shift_bit_idx));
-      } else {
-        break;
-      }
-    }
-
-    if (ans.size() == mod_word_idx + 1) {
-      if (mod_bit_idx > 0) {
-        ans[mod_word_idx] &= (uint64_t{1} << mod_bit_idx) - 1;
-      } else {
-        ans.pop_back();
-      }
-    }
-
-    BigUint ret(std::move(ans));
-    ret.TrimLeadingZeros();
-    return ret;
-  }
-
-  /**
-   * @brief *this += value << shift
-   * @param value
-   * @param shift
-   * @return
-   */
-  constexpr BigUint& ShlAddAssign(const BigUint& rhs, const std::size_t shift) {
-    const auto word_idx = shift / 64;
-    const auto bit_idx = shift % 64;
-
-    uint128_t carry = 0;
-    for (std::size_t i = 0; i < rhs.size() || carry > 0; ++i) {
-      uint128_t lhs_value = 0;
-      if (i + word_idx < this->size()) {
-        lhs_value = static_cast<uint128_t>((*this)[word_idx + i]);
-      }
-      uint128_t rhs_value = 0;
-      if (i < rhs.size()) {
-        rhs_value = static_cast<uint128_t>(rhs[i]) << bit_idx;
-      }
-
-      const auto sum = carry + static_cast<uint128_t>(lhs_value) + static_cast<uint128_t>(rhs_value);
-      if (i + word_idx >= this->size()) {
-        this->resize(i + word_idx + 1);
-      }
-      (*this)[i + word_idx] = static_cast<uint64_t>(sum);
-      carry = sum >> 64;
-    }
-
-    TrimLeadingZeros();
-    return *this;
-  }
-
-  // <arithmetic operators>
+  // <Operators>
   constexpr BigUint& operator+=(const BigUint& rhs) {
     this->resize(std::max(this->size(), rhs.size()));
 
@@ -218,6 +122,8 @@ class BigUint : public std::vector<uint64_t> {
   }
 
   constexpr BigUint& operator*=(const BigUint& rhs) {
+    // The multiplication requires memory allocation, so we cannot define MulAssign operator efficiently. Therefore, we
+    // use the implementation of the multiplication operator.
     *this = *this * rhs;
     return *this;
   }
@@ -300,6 +206,12 @@ class BigUint : public std::vector<uint64_t> {
 
     this->push_back(1);
     return *this;
+  }
+
+  constexpr BigUint operator++(int) {
+    BigUint ret = *this;
+    operator++();
+    return ret;
   }
 
   friend constexpr BigUint operator+(const BigUint& lhs, const BigUint& rhs) {
@@ -412,18 +324,133 @@ class BigUint : public std::vector<uint64_t> {
   }
 
   friend constexpr bool operator==(const BigUint& lhs, const BigUint& rhs) noexcept = default;
-  // </arithmetic operators>
+  // </Operators>
 
-  constexpr uint64_t NumberOfBits() const {
-    // Before calling `this->back()`, we must check if the number is zero.
-    if (IsZero()) {
-      return 0;
+  // <Minor Methods>
+  // The functions in this section is optimized arithmetic operations for the particular use cases, so they may not be
+  // so useful for general purpose.
+
+  /**
+   * @brief *this = *this % (2 ** n)
+   * @param n Index of power of 2
+   */
+  constexpr BigUint& ModAssign2Pow(std::size_t n) {
+    const auto word_idx = n / 64;
+    const auto bit_idx = n % 64;
+
+    if (this->size() <= word_idx) {
+      return *this;
     }
 
-    const uint64_t num_of_bits_back = std::bit_width(this->back());
-    const uint64_t num_of_bits_except_back = (this->size() - 1) * 64;
-    return num_of_bits_back + num_of_bits_except_back;
+    this->resize(word_idx + 1);
+    this->back() &= (uint64_t{1} << bit_idx) - 1;
+    TrimLeadingZeros();
+
+    return *this;
   }
+
+  /**
+   * @brief *this += 2 ** n
+   * @param n Index of power of 2
+   */
+  constexpr BigUint& AddAssign2Pow(std::size_t n) {
+    const auto word_idx = n / 64;
+    const auto bit_idx = n % 64;
+    if (word_idx >= this->size()) {
+      // Extend if (1 << n) is out of range
+      this->resize(word_idx + 1);
+    }
+
+    uint128_t carry = uint128_t{1} << bit_idx;
+    for (std::size_t i = word_idx; i < this->size() && carry > 0; ++i) {
+      const uint128_t sum = static_cast<uint128_t>((*this)[i]) + carry;
+      (*this)[i] = static_cast<uint64_t>(sum);
+      carry = sum >> 64;
+    }
+
+    if (carry > 0) {
+      this->push_back(carry);
+    }
+
+    return *this;
+  }
+
+  /**
+   * @brief *this += value << shift
+   * @param value
+   * @param shift
+   * @return
+   */
+  constexpr BigUint& ShlAddAssign(const BigUint& rhs, const std::size_t shift) {
+    const auto word_idx = shift / 64;
+    const auto bit_idx = shift % 64;
+
+    uint128_t carry = 0;
+    for (std::size_t i = 0; i < rhs.size() || carry > 0; ++i) {
+      uint128_t lhs_value = 0;
+      if (i + word_idx < this->size()) {
+        lhs_value = static_cast<uint128_t>((*this)[word_idx + i]);
+      }
+      uint128_t rhs_value = 0;
+      if (i < rhs.size()) {
+        rhs_value = static_cast<uint128_t>(rhs[i]) << bit_idx;
+      }
+
+      const auto sum = carry + static_cast<uint128_t>(lhs_value) + static_cast<uint128_t>(rhs_value);
+      if (i + word_idx >= this->size()) {
+        this->resize(i + word_idx + 1);
+      }
+      (*this)[i + word_idx] = static_cast<uint64_t>(sum);
+      carry = sum >> 64;
+    }
+
+    TrimLeadingZeros();
+    return *this;
+  }
+
+  /**
+   * @brief (*this >> shift) % (2 ** mod)
+   */
+  constexpr BigUint ShiftMod2Pow(std::size_t shift, std::size_t mod) const {
+    const auto shift_word_idx = shift / 64;
+    const auto shift_bit_idx = shift % 64;
+    const auto mod_word_idx = mod / 64;
+    const auto mod_bit_idx = mod % 64;
+
+    if (this->size() < shift_word_idx) {
+      return BigUint{};
+    }
+
+    std::vector<uint64_t> ans;
+    ans.reserve(mod_word_idx + 1);
+    for (std::size_t i = 0; i < mod_word_idx + 1; ++i) {
+      const auto src_lower = i + shift_word_idx;
+      const auto src_upper = src_lower + 1;
+      if (src_lower < this->size()) {
+        uint128_t word = static_cast<uint128_t>((*this)[src_lower]);
+        if (src_upper < this->size()) {
+          word |= static_cast<uint128_t>((*this)[src_upper]) << 64;
+        }
+        ans.push_back(static_cast<uint64_t>(word >> shift_bit_idx));
+      } else {
+        break;
+      }
+    }
+
+    if (ans.size() == mod_word_idx + 1) {
+      if (mod_bit_idx > 0) {
+        ans[mod_word_idx] &= (uint64_t{1} << mod_bit_idx) - 1;
+      } else {
+        ans.pop_back();
+      }
+    }
+
+    BigUint ret(std::move(ans));
+    ret.TrimLeadingZeros();
+    return ret;
+  }
+
+  // </Minor Methods>
 
  private:
   constexpr BigUint& TrimLeadingZeros() noexcept {

@@ -22,11 +22,11 @@ class GF2PowNPlus1 {
     // follows. Therefore, we will calculate
     //     r - q
     BigUint q = value_ >> n_;
-    if (q.size() == 0) {
+    if (q.IsZero()) {
       return;
     }
 
-    value_.ModAssign2PowN(n_);
+    value_.ModAssign2Pow(n_);
 
     // Calculate ((value_ - q)  mod 2**n + 1)
     if (value_ < q) {
@@ -109,7 +109,7 @@ class GF2PowNPlus1 {
 
  private:
   constexpr const void AddModValue() {
-    value_.AddAssign2PowN(n_);
+    value_.AddAssign2Pow(n_);
     ++value_;
   }
 
