@@ -58,6 +58,27 @@ class BigUint : private std::vector<uint64_t> {
     const uint64_t num_of_bits_except_back = (this->size() - 1) * 64;
     return num_of_bits_back + num_of_bits_except_back;
   }
+
+  constexpr BigUint Pow(uint64_t index) const {
+    if (index >= uint64_t{1} << 63) {
+      throw std::out_of_range("The index is too big");
+    }
+
+    BigUint ans = BigUint{1};
+    BigUint curr_base = *this;
+    uint64_t curr_index_mask = 1;
+
+    while (curr_index_mask <= index) {
+      if (index & curr_index_mask) {
+        ans *= curr_base;
+      }
+
+      curr_base *= curr_base;
+      curr_index_mask <<= 1;
+    }
+
+    return ans;
+  }
   // </Basic Methods>
 
   // <Operators>

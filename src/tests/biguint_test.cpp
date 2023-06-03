@@ -17,6 +17,15 @@ TEST(BigUint, NumberOfBits) {
   EXPECT_EQ((BigUint{0x0, 0x1}).NumberOfBits(), 65);
 }
 
+TEST(BigUint, Pow) {
+  EXPECT_EQ(BigUint{}.Pow(0), BigUint{1});
+  EXPECT_EQ(BigUint{}.Pow(334), BigUint{0});
+
+  EXPECT_EQ(BigUint{334}.Pow(0), BigUint{1});
+  EXPECT_EQ(BigUint{334}.Pow(10), (BigUint{0x2481ABC0B92AC400ULL, 0xE4A84ULL}));
+  EXPECT_THROW(BigUint{334}.Pow(std::numeric_limits<uint64_t>::max()), std::out_of_range);
+}
+
 TEST(BigUint, Add) {
   const BigUint x{0x8000000000000000ULL, 0x1ULL};
   const BigUint y{0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFEULL};

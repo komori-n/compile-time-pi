@@ -36,8 +36,8 @@ class BigFloat {
    * @param significand The significand part of the number. (default is zero)
    * @param exponent The exponent part of the number. (default is zero)
    */
-  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{})
-      : precision_{precision}, significand_{std::move(significand)} {}
+  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, Sign sign = Sign::kPositive)
+      : precision_{precision}, significand_{std::move(significand)}, sign_{Sign::kPositive} {}
   constexpr BigFloat() = delete;
   constexpr BigFloat(const BigFloat&) = default;
   constexpr BigFloat(BigFloat&&) noexcept = default;
@@ -139,17 +139,20 @@ class BigFloat {
    * @brief Get the fractional part of the abs of the number
    * @return The fractional part
    */
-  constexpr std::pair<BigUint, int64_t> FractionalPart() const {
-    if (exponent_ >= 0) {
-      return std::make_pair(BigUint{}, 0);
+  constexpr BigFloat FractionalPart() const {
+    const auto dot_bit = -exponent_;
+    if (dot_bit < LowestReliableBit()) {
+      return BigFloat{0};
     }
 
-    auto ans = significand_.ShiftMod2Pow(0, static_cast<uint64_t>(-exponent_));
-    if (ans.IsZero()) {
-      return std::make_pair(BigUint{}, 0);
-    } else {
-      return std::make_pair(std::move(ans), exponent_);
+    auto ans_precision = dot_bit - LowestReliableBit();
+    auto ans_sign = sign_;
+    if (dot_bit <= 0) {
+      // The fractional part is obviously zero
+      return BigFloat{ans_precision, BigUint{}, ans_sign};
     }
+    auto ans_significand = significand_.ShiftMod2Pow(0, dot_bit);
+    return BigFloat{ans_precision, std::move(ans_significand), ans_sign} >> dot_bit;
   }
 
  private:
@@ -171,7 +174,6 @@ class BigFloat {
   constexpr void Simplify() {
     const auto lowest_reliable_bit = LowestReliableBit();
     if (lowest_reliable_bit > 64) {
-      std::cout << lowest_reliable_bit << std::endl;
       const auto shift = lowest_reliable_bit - 1;
       significand_ >>= shift;
       exponent_ += shift;

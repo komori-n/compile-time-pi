@@ -34,8 +34,7 @@ TEST(BigFloat, Add) {
     BigFloat lhs;
     BigFloat rhs;
     Sign expected_sign;
-    BigUint expected_integer_part;
-    BigUint expected_fractional_part;
+    BigUint expected_significand;
     int64_t expected_fractional_digits;
     int64_t expected_precision;
   };
@@ -43,27 +42,23 @@ TEST(BigFloat, Add) {
   const BigFloat x = BigFloat(20, BigUint{0x334});
   const BigFloat y = BigFloat(10, BigUint{0x264});
   const std::array<TestCase, 6> test_cases{{
-      {x << 33, y, Sign::kPositive, BigUint{(0x334ULL << 33) + 0x264}, BigUint{}, 0, 20},
-      {x >> 4, y, Sign::kPositive, BigUint{(0x334ULL >> 4) + 0x264}, BigUint{0x4}, -4, 10},
-      {x, y, Sign::kPositive, BigUint{0x334 + 0x264}, BigUint{}, 0, 11},
-      {x, -y, Sign::kPositive, BigUint{0x334 - 0x264}, BigUint{}, 0, 8},
-      {-x, y, Sign::kNegative, BigUint{0x334 - 0x264}, BigUint{}, 0, 8},
-      {-x, -y, Sign::kNegative, BigUint{0x334 + 0x264}, BigUint{}, 0, 11},
+      {x << 33, y, Sign::kPositive, BigUint{(0x334ULL << 33) + 0x264}, 0, 20},
+      {x >> 4, y, Sign::kPositive, BigUint{0x334ULL + (0x264 << 4)}, 4, 10},
+      {x, y, Sign::kPositive, BigUint{0x334 + 0x264}, 0, 11},
+      {x, -y, Sign::kPositive, BigUint{0x334 - 0x264}, 0, 8},
+      {-x, y, Sign::kNegative, BigUint{0x334 - 0x264}, 0, 8},
+      {-x, -y, Sign::kNegative, BigUint{0x334 + 0x264}, 0, 11},
   }};
 
-  for (const auto& [lhs, rhs, e_sign, e_integer_part, e_fractional_part, e_fractional_digits, e_precision] :
-       test_cases) {
+  for (const auto& [lhs, rhs, e_sign, e_significand, e_fractional_digits, e_precision] : test_cases) {
     const auto ans = lhs + rhs;
     const auto sign = ans.GetSign();
     const auto precision = ans.GetPrecision();
-    const auto integer_part = ans.IntegerPart();
-    const auto [fractional_part, fractional_digits] = ans.FractionalPart();
+    const auto integer_part = (ans << e_fractional_digits).IntegerPart();
 
     EXPECT_EQ(sign, e_sign);
     EXPECT_EQ(precision, e_precision);
-    EXPECT_EQ(integer_part, e_integer_part);
-    EXPECT_EQ(fractional_part, e_fractional_part);
-    EXPECT_EQ(fractional_digits, e_fractional_digits);
+    EXPECT_EQ(integer_part, e_significand);
   }
 }
 
@@ -95,24 +90,27 @@ TEST(BigFloat, IntegerPart) {
 TEST(BigFloat, FractionalPart) {
   struct TestCase {
     BigFloat input;
-    BigUint expected_first;
-    int64_t expected_second;
+    int64_t expected_precision;
+    BigUint expected_significand;
+    int64_t expected_exp;
   };
 
   const std::array<TestCase, 4> test_cases = {{
       // zero
-      {BigFloat(334), BigUint{}, 0},
+      {BigFloat(334), 334, BigUint{}, -334},
       // Integer
-      {BigFloat(334, BigUint{0x334}) << 20, BigUint{}, 0},
+      {BigFloat(334, BigUint{0x334}) << 20, 334 - 20 - 10, BigUint{}, 0},
       // 0x3.34
-      {BigFloat(334, BigUint{0x334}) >> 8, BigUint{0x34}, -8},
+      {BigFloat(334, BigUint{0x334}) >> 8, 334 - 2, BigUint{0x34}, -8},
       // 0x0.00 .. 0334
-      {BigFloat(334, BigUint{0x334}) >> 100, BigUint{0x334}, -100},
+      {BigFloat(334, BigUint{0x334}) >> 100, 334 + 100 - 10, BigUint{0x334}, -100},
   }};
 
-  for (const auto& [input, expected_first, expected_second] : test_cases) {
+  for (const auto& [input, e_precision, e_significand, e_exp] : test_cases) {
     const auto res = input.FractionalPart();
-    EXPECT_EQ(res.first, expected_first);
-    EXPECT_EQ(res.second, expected_second);
+    EXPECT_EQ(res.GetPrecision(), e_precision);
+
+    const auto sig = (res << (-e_exp)).IntegerPart();
+    EXPECT_EQ(sig, e_significand);
   }
 }
