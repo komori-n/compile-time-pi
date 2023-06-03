@@ -123,33 +123,6 @@ class BigFloat {
     return lhs;
   }
 
-  friend constexpr std::weak_ordering operator<=>(const BigFloat& lhs, const BigFloat& rhs) noexcept {
-    if (lhs.sign_ == Sign::kNegative && rhs.sign_ == Sign::kPositive) {
-      return std::weak_ordering::less;
-    } else if (lhs.sign_ == Sign::kPositive && rhs.sign_ == Sign::kNegative) {
-      return std::weak_ordering::greater;
-    } else {
-      auto ans = std::strong_ordering::equal;
-      if (lhs.exponent_ < rhs.exponent_) {
-        ans = (lhs.significand_ >> (rhs.exponent_ - lhs.exponent_)) <=> rhs.significand_;
-      } else {
-        ans = lhs.significand_ <=> (rhs.significand_ >> (rhs.exponent_ - lhs.exponent_));
-      }
-
-      if (lhs.sign_ == Sign::kPositive) {
-        return ans;
-      }
-
-      if (ans == std::strong_ordering::equal) {
-        return std::weak_ordering::equivalent;
-      } else if (ans == std::strong_ordering::less) {
-        return std::weak_ordering::greater;
-      } else {
-        return std::weak_ordering::less;
-      }
-    }
-  }
-
   /**
    * @brief Get the integer part of the abs of the number
    * @return The integer part
@@ -198,6 +171,7 @@ class BigFloat {
   constexpr void Simplify() {
     const auto lowest_reliable_bit = LowestReliableBit();
     if (lowest_reliable_bit > 64) {
+      std::cout << lowest_reliable_bit << std::endl;
       const auto shift = lowest_reliable_bit - 1;
       significand_ >>= shift;
       exponent_ += shift;

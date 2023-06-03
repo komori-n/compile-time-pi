@@ -67,6 +67,19 @@ TEST(BigFloat, Add) {
   }
 }
 
+TEST(BigFloat, Multiply) {
+  const BigFloat x = BigFloat(128, BigUint({0x334ULL, 0x264ULL})) << 33;
+  const BigFloat y = BigFloat(16, BigUint({0x44ULL, 0x5ULL})) >> 4;
+
+  const auto z = x * y;
+  EXPECT_EQ(z.GetSign(), BigFloat::Sign::kPositive);
+
+  // (0x264 * 0x5) << 4 == 0xbf40
+  EXPECT_EQ((z >> (128 + 29)).IntegerPart(), BigUint({0xbf40}));
+
+  EXPECT_EQ((x * (-y)).GetSign(), BigFloat::Sign::kNegative);
+}
+
 TEST(BigFloat, IntegerPart) {
   BigFloat x(334);
   BigFloat y = BigFloat(334, BigUint({0x334})) << 20;
