@@ -20,7 +20,7 @@ TEST(BigFloat, SignOperators) {
 
 TEST(BigFloat, SignAndUnaryMinus) {
   const BigFloat x(10);
-  const BigFloat y(10, BigUint({0x334}));
+  const BigFloat y(10, BigUint{0x334});
 
   EXPECT_EQ(x.GetSign(), BigFloat::Sign::kPositive);
   EXPECT_EQ(y.GetSign(), BigFloat::Sign::kPositive);
@@ -40,15 +40,15 @@ TEST(BigFloat, Add) {
     int64_t expected_precision;
   };
 
-  const BigFloat x = BigFloat(20, BigUint({0x334}));
-  const BigFloat y = BigFloat(10, BigUint({0x264}));
+  const BigFloat x = BigFloat(20, BigUint{0x334});
+  const BigFloat y = BigFloat(10, BigUint{0x264});
   const std::array<TestCase, 6> test_cases{{
-      {x << 33, y, Sign::kPositive, BigUint({(0x334ULL << 33) + 0x264}), BigUint{}, 0, 20},
-      {x >> 4, y, Sign::kPositive, BigUint({(0x334ULL >> 4) + 0x264}), BigUint{0x4}, -4, 10},
-      {x, y, Sign::kPositive, BigUint({0x334 + 0x264}), BigUint{}, 0, 11},
-      {x, -y, Sign::kPositive, BigUint({0x334 - 0x264}), BigUint{}, 0, 8},
-      {-x, y, Sign::kNegative, BigUint({0x334 - 0x264}), BigUint{}, 0, 8},
-      {-x, -y, Sign::kNegative, BigUint({0x334 + 0x264}), BigUint{}, 0, 11},
+      {x << 33, y, Sign::kPositive, BigUint{(0x334ULL << 33) + 0x264}, BigUint{}, 0, 20},
+      {x >> 4, y, Sign::kPositive, BigUint{(0x334ULL >> 4) + 0x264}, BigUint{0x4}, -4, 10},
+      {x, y, Sign::kPositive, BigUint{0x334 + 0x264}, BigUint{}, 0, 11},
+      {x, -y, Sign::kPositive, BigUint{0x334 - 0x264}, BigUint{}, 0, 8},
+      {-x, y, Sign::kNegative, BigUint{0x334 - 0x264}, BigUint{}, 0, 8},
+      {-x, -y, Sign::kNegative, BigUint{0x334 + 0x264}, BigUint{}, 0, 11},
   }};
 
   for (const auto& [lhs, rhs, e_sign, e_integer_part, e_fractional_part, e_fractional_digits, e_precision] :
@@ -68,27 +68,27 @@ TEST(BigFloat, Add) {
 }
 
 TEST(BigFloat, Multiply) {
-  const BigFloat x = BigFloat(128, BigUint({0x334ULL, 0x264ULL})) << 33;
-  const BigFloat y = BigFloat(16, BigUint({0x44ULL, 0x5ULL})) >> 4;
+  const BigFloat x = BigFloat(128, BigUint{0x334ULL, 0x264ULL}) << 33;
+  const BigFloat y = BigFloat(16, BigUint{0x44ULL, 0x5ULL}) >> 4;
 
   const auto z = x * y;
   EXPECT_EQ(z.GetSign(), BigFloat::Sign::kPositive);
 
   // (0x264 * 0x5) << 4 == 0xbf40
-  EXPECT_EQ((z >> (128 + 29)).IntegerPart(), BigUint({0xbf40}));
+  EXPECT_EQ((z >> (128 + 29)).IntegerPart(), BigUint{0xbf40});
 
   EXPECT_EQ((x * (-y)).GetSign(), BigFloat::Sign::kNegative);
 }
 
 TEST(BigFloat, IntegerPart) {
   BigFloat x(334);
-  BigFloat y = BigFloat(334, BigUint({0x334})) << 20;
-  BigFloat z = BigFloat(334, BigUint({0x334})) >> 2;
-  BigFloat w = BigFloat(334, BigUint({0x334})) >> 100;
+  BigFloat y = BigFloat(334, BigUint{0x334}) << 20;
+  BigFloat z = BigFloat(334, BigUint{0x334}) >> 2;
+  BigFloat w = BigFloat(334, BigUint{0x334}) >> 100;
 
   EXPECT_EQ(x.IntegerPart(), BigUint{});
-  EXPECT_EQ(y.IntegerPart(), BigUint({0x334 << 20}));
-  EXPECT_EQ(z.IntegerPart(), BigUint({0x334 >> 2}));
+  EXPECT_EQ(y.IntegerPart(), BigUint{0x334 << 20});
+  EXPECT_EQ(z.IntegerPart(), BigUint{0x334 >> 2});
   EXPECT_EQ(w.IntegerPart(), BigUint{});
 }
 
@@ -103,11 +103,11 @@ TEST(BigFloat, FractionalPart) {
       // zero
       {BigFloat(334), BigUint{}, 0},
       // Integer
-      {BigFloat(334, BigUint({0x334})) << 20, BigUint{}, 0},
+      {BigFloat(334, BigUint{0x334}) << 20, BigUint{}, 0},
       // 0x3.34
-      {BigFloat(334, BigUint({0x334})) >> 8, BigUint({0x34}), -8},
+      {BigFloat(334, BigUint{0x334}) >> 8, BigUint{0x34}, -8},
       // 0x0.00 .. 0334
-      {BigFloat(334, BigUint({0x334})) >> 100, BigUint({0x334}), -100},
+      {BigFloat(334, BigUint{0x334}) >> 100, BigUint{0x334}, -100},
   }};
 
   for (const auto& [input, expected_first, expected_second] : test_cases) {

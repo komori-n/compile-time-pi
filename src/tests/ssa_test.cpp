@@ -8,21 +8,21 @@ using komori::BigUint;
 using komori::detail::SplittedInteger;
 
 TEST(SplittedInteger, Basic) {
-  const BigUint x({0x1234567890abcdefULL});
-  const BigUint y({0x1234567890abcdefULL, 0xfedcba0987654321ULL});
+  const BigUint x{0x1234567890abcdefULL};
+  const BigUint y{0x1234567890abcdefULL, 0xfedcba0987654321ULL};
   EXPECT_EQ(x, SplittedInteger(x, 5).Get());
   EXPECT_EQ(y, SplittedInteger(y, 6).Get());
 }
 
 TEST(SplittedInteger, NTT) {
-  const BigUint x({0x1234567890abcdefULL});
+  const BigUint x{0x1234567890abcdefULL};
 
   SplittedInteger splitted_x(x, 5);
   splitted_x.NTT();
   splitted_x.INTT();
   EXPECT_EQ(x, splitted_x.Get());
 
-  const BigUint y({0x1234567890abcdefULL, 0xfedcba0987654321ULL});
+  const BigUint y{0x1234567890abcdefULL, 0xfedcba0987654321ULL};
   SplittedInteger splitted_y(y, 6);
   splitted_y.NTT();
   splitted_y.INTT();

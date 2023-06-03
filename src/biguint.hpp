@@ -14,11 +14,16 @@
 
 namespace komori {
 class BigUint : public std::vector<uint64_t> {
- public:
-  /// Inherit vector constructors
-  using std::vector<uint64_t>::vector;
+  using Base = std::vector<uint64_t>;
 
-  constexpr explicit BigUint(std::vector<uint64_t> values) : std::vector<uint64_t>{std::move(values)} {}
+ public:
+  // <Constructors>
+  /// Construct from a uint64 value
+  constexpr explicit BigUint(uint64_t value) : Base{value} {}
+  /// Construct from a vector
+  constexpr explicit BigUint(std::vector<uint64_t> values) : Base{std::move(values)} { TrimLeadingZeros(); }
+  /// Construct from a initializer list
+  constexpr explicit BigUint(std::initializer_list<uint64_t> value) : Base{std::move(value)} { TrimLeadingZeros(); }
 
   constexpr BigUint() = default;
   constexpr BigUint(const BigUint&) = default;
@@ -29,6 +34,7 @@ class BigUint : public std::vector<uint64_t> {
 
   /// Judge if the number is zero(Don't use `empty()` directly outside of this class)
   constexpr bool IsZero() const noexcept { return empty(); }
+  // </Constructors>
 
   /**
    * @brief *this += 2 ** n

@@ -47,7 +47,7 @@ class GF2PowNPlus1 {
 
   static constexpr GF2PowNPlus1 Make2Pow(std::size_t p, std::size_t n) {
     p = p % (2 * n);
-    BigUint ans({1});
+    BigUint ans{1};
     ans <<= p;
     GF2PowNPlus1 ret(n, std::move(ans));
     if (p > n) {

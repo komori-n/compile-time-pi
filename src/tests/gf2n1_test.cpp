@@ -16,15 +16,15 @@ constexpr BigUint MakeBigUint(uint64_t value) noexcept {
 }
 
 TEST(GF2PowNPlus1, ConstructByDynamicBigUint) {
-  EXPECT_EQ(GF2PowNPlus1(64, BigUint({0x334ULL})).Get(), BigUint({0x334ULL}));
-  EXPECT_EQ(GF2PowNPlus1(8, BigUint({0x33ULL, 0x4ULL})).Get(), BigUint({0x33ULL, 0x4ULL}));
+  EXPECT_EQ(GF2PowNPlus1(64, BigUint{0x334ULL}).Get(), BigUint{0x334ULL});
+  EXPECT_EQ(GF2PowNPlus1(8, BigUint{0x33ULL, 0x4ULL}).Get(), (BigUint{0x33ULL, 0x4ULL}));
 }
 
 TEST(GF2PowNPlus1, Make2Pow) {
   for (std::size_t p = 0; p < 64; ++p) {
     const auto x = GF2PowNPlus1::Make2Pow(p, 8);
     const std::uint64_t expected = static_cast<uint64_t>((uint128_t{1} << p) % 257);
-    EXPECT_EQ(x.Get(), BigUint({expected})) << p;
+    EXPECT_EQ(x.Get(), BigUint{expected}) << p;
   }
 }
 
