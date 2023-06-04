@@ -103,22 +103,46 @@ class BigFloat {
     return lhs;
   }
 
-  constexpr BigFloat& operator<<=(uint64_t rhs) noexcept {
-    exponent_ += static_cast<int64_t>(rhs);
+  /**
+   * @brief Left-shift by `rhs` bits and assign to self
+   * @param rhs The number of bits to be shifted. This can be negative.
+   * @return *this
+   * @detail If `rhs` is negative, the behaviors of this method is like `operator>>=(-rhs)`
+   */
+  constexpr BigFloat& operator<<=(int64_t rhs) noexcept {
+    exponent_ += rhs;
     return *this;
   }
 
-  friend constexpr BigFloat operator<<(BigFloat lhs, uint64_t rhs) {
+  /**
+   * @brief Left-shift by `rhs` bits
+   * @param rhs The number of bits to be shifted. This can be negative.
+   * @return Result of the calculation
+   * @detail If `rhs` is negative, the behaviors of this method is like `operator>>(-rhs)`
+   */
+  friend constexpr BigFloat operator<<(BigFloat lhs, int64_t rhs) {
     lhs <<= rhs;
     return lhs;
   }
 
-  constexpr BigFloat& operator>>=(uint64_t rhs) noexcept {
-    exponent_ -= static_cast<int64_t>(rhs);
+  /**
+   * @brief Right-shift by `rhs` bits and assign to self
+   * @param rhs The number of bits to be shifted. This can be negative.
+   * @return *this
+   * @detail If `rhs` is negative, the behaviors of this method is like `operator<<=(-rhs)`
+   */
+  constexpr BigFloat& operator>>=(int64_t rhs) noexcept {
+    exponent_ -= rhs;
     return *this;
   }
 
-  friend constexpr BigFloat operator>>(BigFloat lhs, uint64_t rhs) {
+  /**
+   * @brief Right-shift by `rhs` bits
+   * @param rhs The number of bits to be shifted. This can be negative.
+   * @return Result of the calculation
+   * @detail If `rhs` is negative, the behaviors of this method is like `operator<<(-rhs)`
+   */
+  friend constexpr BigFloat operator>>(BigFloat lhs, int64_t rhs) {
     lhs >>= rhs;
     return lhs;
   }
@@ -178,11 +202,7 @@ class BigFloat {
       }
     }();
 
-    if (exp >= 0) {
-      return result_base >> exp;
-    } else {
-      return result_base << (-exp);
-    }
+    return result_base >> exp;
   }
 
  private:
