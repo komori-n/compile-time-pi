@@ -90,7 +90,7 @@ class BigUint : private std::vector<uint64_t> {
       return 0;
     } else if (this->size() == 1) {
       return this->back();
-    } else if (this->size() > 1) {
+    } else {
       throw std::range_error("The number is too big");
     }
   }

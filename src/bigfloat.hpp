@@ -37,7 +37,7 @@ class BigFloat {
    * @param exponent The exponent part of the number. (default is zero)
    */
   constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, Sign sign = Sign::kPositive)
-      : precision_{precision}, significand_{std::move(significand)}, sign_{Sign::kPositive} {}
+      : precision_{precision}, significand_{std::move(significand)}, sign_{sign} {}
   constexpr BigFloat() = delete;
   constexpr BigFloat(const BigFloat&) = default;
   constexpr BigFloat(BigFloat&&) noexcept = default;
@@ -153,6 +153,36 @@ class BigFloat {
     }
     auto ans_significand = significand_.ShiftMod2Pow(0, dot_bit);
     return BigFloat{ans_precision, std::move(ans_significand), ans_sign} >> dot_bit;
+  }
+
+  constexpr BigFloat ApproximateInverse() const {
+    BigUint tmp = significand_;
+    const auto bit_width = tmp.NumberOfBits();
+    int64_t exp = exponent_;
+    if (bit_width > 64) {
+      tmp >>= bit_width - 64;
+      exp += bit_width - 64;
+    }
+
+    const uint64_t value = static_cast<uint64_t>(tmp);
+    if (value == 0) {
+      throw std::range_error("The divisor is zero");
+    }
+
+    const BigFloat result_base = [value, sign = sign_]() {
+      if (value == 1) {
+        return BigFloat(64 - 8, BigUint{1}, sign);
+      } else {
+        const auto approx_div = static_cast<uint64_t>((uint128_t{1} << 64) / value);
+        return BigFloat(64 - 8, BigUint{approx_div}, sign) >> 64;
+      }
+    }();
+
+    if (exp >= 0) {
+      return result_base >> exp;
+    } else {
+      return result_base << (-exp);
+    }
   }
 
  private:

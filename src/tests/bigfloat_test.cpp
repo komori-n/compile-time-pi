@@ -114,3 +114,17 @@ TEST(BigFloat, FractionalPart) {
     EXPECT_EQ(sig, e_significand);
   }
 }
+
+TEST(BigFloat, ApproximateFloat) {
+  EXPECT_THROW((BigFloat(128) << 334).ApproximateInverse(), std::range_error);
+
+  BigFloat x = BigFloat(128, BigUint{0x1}) << 334;
+  BigFloat inv_x = x.ApproximateInverse() << 334;
+  EXPECT_EQ(inv_x.GetSign(), BigFloat::Sign::kPositive);
+  EXPECT_EQ(inv_x.IntegerPart(), BigUint{1});
+
+  BigFloat y = (-BigFloat(128, BigUint{0x334})) >> 334;
+  BigFloat inv_y = y.ApproximateInverse() >> (334 - 64);
+  EXPECT_EQ(inv_y.GetSign(), BigFloat::Sign::kNegative);
+  EXPECT_EQ(inv_y.IntegerPart(), BigUint{0x4FEC04FEC04FEC});
+}
