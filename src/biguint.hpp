@@ -81,6 +81,30 @@ class BigUint : private std::vector<uint64_t> {
   }
 
   /**
+   * @brief
+   * @return
+   */
+  std::string DebugString() const {
+    std::ostringstream s;
+    s << "0x";
+
+    for (std::size_t i = 0; i < size(); ++i) {
+      const auto j = size() - i - 1;
+      if (i == 0) {
+        s << std::hex << (*this)[j];
+      } else {
+        s << std::hex << std::setfill('0') << std::setw(16) << (*this)[j];
+      }
+    }
+
+    if (empty()) {
+      s << "0";
+    }
+
+    return s.str();
+  }
+
+  /**
    * @brief Convert the value to uint64_t
    * @return The integer
    * @throw `std::range_error` if the number is greater than 2^64-1
@@ -485,7 +509,6 @@ class BigUint : private std::vector<uint64_t> {
     ret.TrimLeadingZeros();
     return ret;
   }
-
   // </Minor Methods>
 
  private:
