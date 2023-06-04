@@ -193,16 +193,13 @@ class BigFloat {
       throw std::range_error("The divisor is zero");
     }
 
-    const BigFloat result_base = [value, sign = sign_]() {
-      if (value == 1) {
-        return BigFloat(64 - 8, BigUint{1}, sign);
-      } else {
-        const auto approx_div = static_cast<uint64_t>((uint128_t{1} << 64) / value);
-        return BigFloat(64 - 8, BigUint{approx_div}, sign) >> 64;
-      }
-    }();
-
-    return result_base >> exp;
+    const auto precision = std::min<std::int64_t>(64, precision_);
+    if (value == 1) {
+      return BigFloat(precision, BigUint{1}, sign_) >> exp;
+    } else {
+      const auto approx_div = static_cast<uint64_t>((uint128_t{1} << 64) / value);
+      return BigFloat(precision, BigUint{approx_div}, sign_) >> (64 + exp);
+    }
   }
 
  private:
