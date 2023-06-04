@@ -79,6 +79,21 @@ class BigUint : private std::vector<uint64_t> {
 
     return ans;
   }
+
+  /**
+   * @brief Convert the value to uint64_t
+   * @return The integer
+   * @throw `std::range_error` if the number is greater than 2^64-1
+   */
+  constexpr explicit operator uint64_t() const {
+    if (this->empty()) {
+      return 0;
+    } else if (this->size() == 1) {
+      return this->back();
+    } else if (this->size() > 1) {
+      throw std::range_error("The number is too big");
+    }
+  }
   // </Basic Methods>
 
   // <Operators>

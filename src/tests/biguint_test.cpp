@@ -26,6 +26,12 @@ TEST(BigUint, Pow) {
   EXPECT_THROW(BigUint{334}.Pow(std::numeric_limits<uint64_t>::max()), std::out_of_range);
 }
 
+TEST(BigUint, ToInt) {
+  EXPECT_EQ(static_cast<uint64_t>(BigUint{}), 0);
+  EXPECT_EQ(static_cast<uint64_t>(BigUint{0x334}), 0x334);
+  EXPECT_THROW(static_cast<void>(static_cast<uint64_t>(BigUint{33, 4})), std::range_error);
+}
+
 TEST(BigUint, Add) {
   const BigUint x{0x8000000000000000ULL, 0x1ULL};
   const BigUint y{0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFEULL};
