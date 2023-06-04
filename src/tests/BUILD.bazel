@@ -4,6 +4,7 @@ cc_test(
         "bigfloat_test.cpp",
         "biguint_test.cpp",
         "gf2n1_test.cpp",
+        "io_test.cpp",
         "ssa_test.cpp",
     ],
     deps = [

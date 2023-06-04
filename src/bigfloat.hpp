@@ -49,6 +49,11 @@ class BigFloat {
   constexpr int64_t GetPrecision() const noexcept { return precision_; }
   constexpr void SetPrecision(int64_t precision) noexcept { precision_ = precision; }
 
+  constexpr int64_t GetFractionalPartPrecision() const noexcept {
+    const auto reliable_bit_len = -(LowestReliableBit() + exponent_);
+    return std::max<int64_t>(0, reliable_bit_len);
+  }
+
   std::string DebugString() const {
     std::string s;
     if (sign_ == Sign::kNegative) {

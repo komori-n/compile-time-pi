@@ -5,6 +5,7 @@ cc_library(
         "biguint.hpp",
         "common.hpp",
         "gf2n1.hpp",
+        "io.hpp",
         "ssa.hpp",
     ],
     include_prefix = "komori",
