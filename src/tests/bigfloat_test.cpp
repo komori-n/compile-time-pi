@@ -28,6 +28,11 @@ TEST(BigFloat, SignAndUnaryMinus) {
   EXPECT_EQ((-y).GetSign(), BigFloat::Sign::kNegative);
 }
 
+TEST(BigFloat, DebugString) {
+  EXPECT_EQ(BigFloat(128, BigUint{}).DebugString(), "0x0 * 2^0");
+  EXPECT_EQ(((-BigFloat(128, BigUint{0x334})) >> 334).DebugString(), "-0x334 * 2^(-334)");
+}
+
 TEST(BigFloat, Add) {
   using Sign = BigFloat::Sign;
   struct TestCase {
@@ -128,3 +133,9 @@ TEST(BigFloat, ApproximateFloat) {
   EXPECT_EQ(inv_y.GetSign(), BigFloat::Sign::kNegative);
   EXPECT_EQ(inv_y.IntegerPart(), BigUint{0x4FEC04FEC04FEC});
 }
+
+// TEST(BigFloat, Inverse) {
+//   BigFloat x = BigFloat(128, BigUint{1}) << 334;
+//   auto inv_x = Inverse(x) << 334;
+//   EXPECT_EQ(inv_x.IntegerPart(), BigUint{1});
+// }

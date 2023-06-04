@@ -47,6 +47,24 @@ class BigFloat {
 
   constexpr Sign GetSign() const noexcept { return sign_; }
   constexpr int64_t GetPrecision() const noexcept { return precision_; }
+  constexpr void SetPrecision(int64_t precision) noexcept { precision_ = precision; }
+
+  std::string DebugString() const {
+    std::string s;
+    if (sign_ == Sign::kNegative) {
+      s += "-";
+    }
+
+    s += significand_.DebugString();
+    s += " * 2^";
+    if (exponent_ >= 0) {
+      s += std::to_string(exponent_);
+    } else {
+      s += "(" + std::to_string(exponent_) + ")";
+    }
+
+    return s;
+  }
 
   /**
    * @brief Add two numbers
@@ -240,6 +258,20 @@ class BigFloat {
   /// The sign of the number
   Sign sign_{Sign::kPositive};
 };
+
+constexpr inline BigFloat Inverse(BigFloat num) {
+  const auto target_precision = num.GetPrecision();
+  BigFloat a = num.ApproximateInverse();
+
+  while (a.GetPrecision() < target_precision) {
+    auto x = BigFloat(target_precision, BigUint{1}) - num * a;
+    x *= a;
+    a.SetPrecision(2 * a.GetPrecision());
+    a = std::move(a) + std::move(x);
+  }
+
+  return a;
+}
 }  // namespace komori
 
 #endif  // KOMORI_BIGFLOAT_HPP_
