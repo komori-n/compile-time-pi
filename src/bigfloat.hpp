@@ -36,8 +36,8 @@ class BigFloat {
    * @param significand The significand part of the number. (default is zero)
    * @param exponent The exponent part of the number. (default is zero)
    */
-  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{}, Sign sign = Sign::kPositive)
-      : precision_{precision}, significand_{std::move(significand)}, sign_{sign} {}
+  constexpr explicit BigFloat(int64_t precision, BigUint significand = BigUint{})
+      : BigFloat(precision, std::move(significand), Sign::kPositive) {}
   constexpr BigFloat() = delete;
   constexpr BigFloat(const BigFloat&) = default;
   constexpr BigFloat(BigFloat&&) noexcept = default;
@@ -222,6 +222,9 @@ class BigFloat {
   }
 
  private:
+  constexpr explicit BigFloat(int64_t precision, BigUint significand, Sign sign)
+      : precision_{precision}, significand_{std::move(significand)}, sign_{sign} {}
+
   /**
    * @brief Multiply 2 ** `exponent_ - exponent` to the significand part, and set `exponent` to the exponent part
    * @param exponent The exponent part after the conversion
@@ -260,7 +263,7 @@ class BigFloat {
   Sign sign_{Sign::kPositive};
 };
 
-inline BigFloat Inverse(BigFloat num) {
+constexpr inline BigFloat Inverse(BigFloat num) {
   const auto target_precision = num.GetPrecision();
   BigFloat a = num.ApproximateInverse();
 
@@ -273,6 +276,10 @@ inline BigFloat Inverse(BigFloat num) {
   }
 
   return a;
+}
+
+constexpr inline BigFloat operator/(BigFloat lhs, BigFloat rhs) {
+  return std::move(lhs) * Inverse(std::move(rhs));
 }
 }  // namespace komori
 
