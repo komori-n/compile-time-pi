@@ -246,11 +246,18 @@ class BigFloat {
   }
 
   constexpr void Simplify() {
-    const auto lowest_reliable_bit = LowestReliableBit();
-    if (lowest_reliable_bit > 64) {
-      const auto shift = lowest_reliable_bit - 1;
-      significand_ >>= shift;
-      exponent_ += shift;
+    if (precision_ <= 0) {
+      // The number of reliable bits is zero, but the value is less than 2^exponent_
+      exponent_ -= precision_;
+      precision_ = 0;
+      significand_ = BigUint{};
+    } else {
+      const auto lowest_reliable_bit = LowestReliableBit();
+      if (lowest_reliable_bit > 64) {
+        const auto shift = lowest_reliable_bit - 1;
+        significand_ >>= shift;
+        exponent_ += shift;
+      }
     }
   }
 

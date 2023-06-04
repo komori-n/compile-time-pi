@@ -12,6 +12,29 @@ inline constexpr BigUint Make10Pow(uint64_t n) {
   return BigUint{10}.Pow(n);
 }
 
+inline constexpr int64_t Log10Int(const BigUint& num) {
+  if (num.IsZero()) {
+    throw std::out_of_range("The number must be greater than 0");
+  }
+
+  int64_t r = 1;
+  while (Make10Pow(r) <= num) {
+    r *= 2;
+  }
+
+  int64_t l = r / 2;
+  while (r - l > 1) {
+    const auto m = (l + r) / 2;
+    if (Make10Pow(m) <= num) {
+      l = m;
+    } else {
+      r = m;
+    }
+  }
+
+  return l;
+}
+
 inline std::string FractionalPartToString(BigFloat num, int64_t digit_len) {
   const auto orig_precision = num.GetPrecision();
 
@@ -37,16 +60,32 @@ inline std::string FractionalPartToString(BigFloat num, int64_t digit_len) {
 }
 }  // namespace detail
 
-inline constexpr std::string ToString(const BigFloat& num) {
-  auto integer_part = num.IntegerPart();
-  auto fractional_part = num.FractionalPart();
-  if (!integer_part.IsZero()) {
-    throw std::runtime_error("The integer part must be 0 (not implemented)");
+inline constexpr std::string ToString(const BigUint& num) {
+  if (num.IsZero()) {
+    return std::string{"0"};
   }
 
-  auto integer_part_str = std::string{"0"};
+  const auto digit_len = detail::Log10Int(num) + 1;
+  const auto number_of_bits = num.NumberOfBits();
+
+  BigFloat b = BigFloat(number_of_bits + 10, detail::Make10Pow(digit_len));
+  BigFloat inv_b = Inverse(b);
+  BigFloat f = BigFloat(number_of_bits + 10, num) * inv_b;
+  // Add `inv_b / 2` to round the result
+  f = std::move(f) + (inv_b >> 2);
+
+  return detail::FractionalPartToString(std::move(f), digit_len);
+}
+
+inline constexpr std::string ToString(const BigFloat& num) {
+  constexpr double log2_10 = 3.321928094887362;
+
+  auto integer_part = num.IntegerPart();
+  auto fractional_part = num.FractionalPart();
+
+  auto integer_part_str = ToString(integer_part);
   const auto frac_precision = fractional_part.GetFractionalPartPrecision();
-  const auto digit_len = static_cast<int64_t>(std::floor(static_cast<double>(frac_precision) / std::log2(10)));
+  const auto digit_len = static_cast<int64_t>(std::floor(static_cast<double>(frac_precision) / log2_10));
   auto fractional_part_str = detail::FractionalPartToString(fractional_part, digit_len);
 
   return std::move(integer_part_str) + "." + std::move(fractional_part_str);

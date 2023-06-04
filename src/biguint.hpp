@@ -59,6 +59,13 @@ class BigUint : private std::vector<uint64_t> {
     return num_of_bits_back + num_of_bits_except_back;
   }
 
+  constexpr uint64_t BitAt(uint64_t n) const {
+    const auto word_idx = n / 64;
+    const auto bit_idx = n % 64;
+
+    return ((*this)[word_idx] >> bit_idx) & 1;
+  }
+
   constexpr BigUint Pow(uint64_t index) const {
     if (index >= uint64_t{1} << 63) {
       throw std::out_of_range("The index is too big");
