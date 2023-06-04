@@ -74,8 +74,8 @@ TEST(BigFloat, Multiply) {
   const auto z = x * y;
   EXPECT_EQ(z.GetSign(), BigFloat::Sign::kPositive);
 
-  // (0x264 * 0x5) << 4 == 0xbf40
-  EXPECT_EQ((z >> (128 + 29)).IntegerPart(), BigUint{0xbf40});
+  // (0x264 * 0x5) == 0xbf4
+  EXPECT_EQ((z >> (128 + 29)).IntegerPart(), BigUint{0xbf4});
 
   EXPECT_EQ((x * (-y)).GetSign(), BigFloat::Sign::kNegative);
 }
@@ -134,8 +134,14 @@ TEST(BigFloat, ApproximateFloat) {
   EXPECT_EQ(inv_y.IntegerPart(), BigUint{0x4FEC04FEC04FEC});
 }
 
-// TEST(BigFloat, Inverse) {
-//   BigFloat x = BigFloat(128, BigUint{1}) << 334;
-//   auto inv_x = Inverse(x) << 334;
-//   EXPECT_EQ(inv_x.IntegerPart(), BigUint{1});
-// }
+TEST(BigFloat, Inverse) {
+  BigFloat x = BigFloat(128, BigUint{1}) << 334;
+  auto inv_x = Inverse(x) << 334;
+  EXPECT_EQ(inv_x.IntegerPart(), BigUint{1});
+
+  BigFloat y = (-BigFloat(128, BigUint{0x123456789ABCDEF0ULL, 0xFEDCBA0987654321ULL})) >> 334;
+  BigFloat inv_y = Inverse(y);
+  BigFloat prod = y * inv_y;
+  BigUint frac_part = (prod << 128).IntegerPart();
+  EXPECT_TRUE(frac_part == (BigUint{0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL}) || frac_part == (BigUint{0, 0, 1}));
+}

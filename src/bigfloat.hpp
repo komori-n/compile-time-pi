@@ -87,7 +87,7 @@ class BigFloat {
     if (lhs.sign_ == rhs.sign_) {
       lhs.significand_ += rhs.significand_;
     } else {
-      if (lhs.significand_ > rhs.significand_) {
+      if (lhs.significand_ >= rhs.significand_) {
         lhs.significand_ -= rhs.significand_;
       } else {
         rhs.significand_ -= lhs.significand_;
@@ -111,6 +111,7 @@ class BigFloat {
     significand_ = Multiply(significand_, rhs.significand_);
     sign_ = sign_ ^ rhs.sign_;
     precision_ = std::min(precision_, rhs.precision_);
+    exponent_ += rhs.exponent_;
 
     Simplify();
     return *this;
@@ -201,9 +202,9 @@ class BigFloat {
     BigUint tmp = significand_;
     const auto bit_width = tmp.NumberOfBits();
     int64_t exp = exponent_;
-    if (bit_width > 64) {
-      tmp >>= bit_width - 64;
-      exp += bit_width - 64;
+    if (bit_width > 32) {
+      tmp >>= bit_width - 32;
+      exp += bit_width - 32;
     }
 
     const uint64_t value = static_cast<uint64_t>(tmp);
@@ -211,7 +212,7 @@ class BigFloat {
       throw std::range_error("The divisor is zero");
     }
 
-    const auto precision = std::min<std::int64_t>(64, precision_);
+    const auto precision = std::min<std::int64_t>(32, precision_);
     if (value == 1) {
       return BigFloat(precision, BigUint{1}, sign_) >> exp;
     } else {
@@ -259,14 +260,15 @@ class BigFloat {
   Sign sign_{Sign::kPositive};
 };
 
-constexpr inline BigFloat Inverse(BigFloat num) {
+inline BigFloat Inverse(BigFloat num) {
   const auto target_precision = num.GetPrecision();
   BigFloat a = num.ApproximateInverse();
 
   while (a.GetPrecision() < target_precision) {
+    a.SetPrecision(2 * a.GetPrecision());
     auto x = BigFloat(target_precision, BigUint{1}) - num * a;
     x *= a;
-    a.SetPrecision(2 * a.GetPrecision());
+    a.SetPrecision(a.GetPrecision() - 1);
     a = std::move(a) + std::move(x);
   }
 
