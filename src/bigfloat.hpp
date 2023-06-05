@@ -48,6 +48,7 @@ class BigFloat {
   constexpr Sign GetSign() const noexcept { return sign_; }
   constexpr int64_t GetPrecision() const noexcept { return precision_; }
   constexpr void SetPrecision(int64_t precision) noexcept { precision_ = precision; }
+  constexpr bool IsZero() const noexcept { return significand_.IsZero(); }
 
   constexpr int64_t GetFractionalPartPrecision() const noexcept {
     const auto reliable_bit_len = -(LowestReliableBit() + exponent_);
@@ -226,6 +227,27 @@ class BigFloat {
     }
   }
 
+  constexpr BigFloat ApproximateSqrt() const {
+    BigUint tmp = significand_;
+    const auto bit_width = tmp.NumberOfBits();
+    int64_t exp = exponent_;
+
+    if (bit_width > 64) {
+      tmp >>= bit_width - 64;
+      exp += bit_width - 64;
+    }
+
+    if (exp % 2) {
+      tmp >>= 1;
+      ++exp;
+    }
+
+    const uint64_t value = ISqrt(static_cast<uint64_t>(tmp));
+    const auto precision = std::min<std::int64_t>(31, precision_ / 2);
+
+    return BigFloat(precision, BigUint{value}) << (exp / 2);
+  }
+
  private:
   constexpr explicit BigFloat(int64_t precision, BigUint significand, Sign sign)
       : precision_{precision}, significand_{std::move(significand)}, sign_{sign} {}
@@ -292,6 +314,34 @@ constexpr inline BigFloat Inverse(BigFloat num) {
 
 constexpr inline BigFloat operator/(BigFloat lhs, BigFloat rhs) {
   return std::move(lhs) * Inverse(std::move(rhs));
+}
+
+constexpr inline BigFloat SqrtInverse(BigFloat num) {
+  const auto target_precision = num.GetPrecision();
+  if (num.GetSign() == BigFloat::Sign::kNegative) {
+    throw std::out_of_range("The number must not be negative");
+  }
+
+  BigFloat a = Inverse(num.ApproximateSqrt());
+
+  while (a.GetPrecision() < target_precision) {
+    a.SetPrecision(2 * a.GetPrecision());
+    auto x = BigFloat(target_precision, BigUint{1}) - num * a * a;
+    x = (a * x) >> 1;
+    a.SetPrecision(a.GetPrecision() - 1);
+    a = std::move(a) + std::move(x);
+  }
+
+  return a;
+}
+
+constexpr inline BigFloat Sqrt(BigFloat num) {
+  if (num.IsZero()) {
+    return BigFloat(num.GetPrecision(), BigUint{0});
+  }
+
+  auto sqrt_inv = SqrtInverse(num);
+  return std::move(num) * std::move(sqrt_inv);
 }
 }  // namespace komori
 

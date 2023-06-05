@@ -145,3 +145,12 @@ TEST(BigFloat, Inverse) {
   BigUint frac_part = (prod << 128).IntegerPart();
   EXPECT_TRUE(frac_part == (BigUint{0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL}) || frac_part == (BigUint{0, 0, 1}));
 }
+
+TEST(BigFloat, Sqrt) {
+  BigFloat x = BigFloat(128, BigUint{0x123456789ABCDEF0ULL, 0xFEDCBA0987654321ULL}) >> 334;
+  BigFloat sqrt_x = Sqrt(x);
+  BigUint y = ((sqrt_x * sqrt_x) << 334).IntegerPart();
+  EXPECT_TRUE(y == (BigUint{0x123456789ABCDEF0ULL, 0xFEDCBA0987654321ULL}) ||
+              y == (BigUint{0x123456789ABCDEEFULL, 0xFEDCBA0987654321ULL}))
+      << y.DebugString();
+}
