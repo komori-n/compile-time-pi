@@ -17,6 +17,7 @@ You can change the number of decimal digits by editing the template argument for
 
 ```cpp
   constexpr auto ans = GetPiString<100000>();
+  //                               ^^^^^^
 ```
 
 ## License
