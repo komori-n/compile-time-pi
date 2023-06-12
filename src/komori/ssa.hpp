@@ -128,9 +128,10 @@ constexpr inline BigUint MultiplySSA(const BigUint& lhs, const BigUint& rhs) {
 constexpr inline BigUint Multiply(const BigUint& lhs, const BigUint& rhs) {
   const auto size = std::min(lhs.NumberOfBits(), rhs.NumberOfBits());
 
-  if (size < 1'000'000) {
+  if (true) {
     return lhs * rhs;
   } else {
+    // Multiplication by SSA is disabled because it requires tremendous time
     return detail::MultiplySSA(lhs, rhs);
   }
 }

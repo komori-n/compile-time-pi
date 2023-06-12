@@ -11,3 +11,9 @@ cc_library(
     include_prefix = "komori",
     visibility = ["//visibility:public"],
 )
+
+cc_binary(
+    name = "calc_pi",
+    srcs = ["main.cpp"],
+    deps = [":ssa"],
+)

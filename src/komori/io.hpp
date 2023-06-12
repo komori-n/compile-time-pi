@@ -8,6 +8,18 @@
 
 namespace komori {
 namespace detail {
+inline constexpr std::string MakePaddedString(uint64_t value, int64_t len) {
+  std::string ans(len, '0');
+
+  auto itr = ans.rbegin();
+  while (value > 0) {
+    *itr++ = static_cast<char>(value % 10) + '0';
+    value /= 10;
+  }
+
+  return ans;
+}
+
 inline constexpr BigUint Make10Pow(uint64_t n) {
   return BigUint{10}.Pow(n);
 }
@@ -35,7 +47,7 @@ inline constexpr int64_t Log10Int(const BigUint& num) {
   return l;
 }
 
-inline std::string FractionalPartToString(BigFloat num, int64_t digit_len) {
+constexpr inline std::string FractionalPartToString(BigFloat num, int64_t digit_len) {
   const auto orig_precision = num.GetPrecision();
 
   if (digit_len <= 0) {
@@ -44,9 +56,7 @@ inline std::string FractionalPartToString(BigFloat num, int64_t digit_len) {
     num *= BigFloat(orig_precision, Make10Pow(digit_len));
     const auto value = static_cast<uint64_t>(num.IntegerPart());
 
-    std::string ans = std::to_string(value);
-    std::string zeros(digit_len - ans.length(), '0');
-    return std::move(zeros) + std::move(ans);
+    return MakePaddedString(value, digit_len);
   }
 
   const auto upper_part_len = digit_len / 2;
@@ -85,7 +95,7 @@ inline constexpr std::string ToString(const BigFloat& num) {
 
   auto integer_part_str = ToString(integer_part);
   const auto frac_precision = fractional_part.GetFractionalPartPrecision();
-  const auto digit_len = static_cast<int64_t>(std::floor(static_cast<double>(frac_precision) / log2_10));
+  const auto digit_len = static_cast<int64_t>(static_cast<double>(frac_precision) / log2_10);
   auto fractional_part_str = detail::FractionalPartToString(fractional_part, digit_len);
 
   return std::move(integer_part_str) + "." + std::move(fractional_part_str);
