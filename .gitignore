@@ -1,5 +1,6 @@
 /bazel-*
 .vscode/
+obj/
 
 compile_commands.json
 *.out
