@@ -11,10 +11,10 @@ TEST(BigUint, IsZero) {
 }
 
 TEST(BigUint, NumberOfBits) {
-  EXPECT_EQ(BigUint{}.NumberOfBits(), 0);
-  EXPECT_EQ(BigUint{0x1}.NumberOfBits(), 1);
-  EXPECT_EQ(BigUint{0x334}.NumberOfBits(), 10);
-  EXPECT_EQ((BigUint{0x0, 0x1}).NumberOfBits(), 65);
+  EXPECT_EQ(BigUint{}.NumberOfBits(), 0ULL);
+  EXPECT_EQ(BigUint{0x1}.NumberOfBits(), 1ULL);
+  EXPECT_EQ(BigUint{0x334}.NumberOfBits(), 10ULL);
+  EXPECT_EQ((BigUint{0x0, 0x1}).NumberOfBits(), 65ULL);
 }
 
 TEST(BigUint, Pow) {
@@ -33,8 +33,8 @@ TEST(BigUint, DebugString) {
 }
 
 TEST(BigUint, ToInt) {
-  EXPECT_EQ(static_cast<uint64_t>(BigUint{}), 0);
-  EXPECT_EQ(static_cast<uint64_t>(BigUint{0x334}), 0x334);
+  EXPECT_EQ(static_cast<uint64_t>(BigUint{}), 0ULL);
+  EXPECT_EQ(static_cast<uint64_t>(BigUint{0x334}), 0x334ULL);
   EXPECT_THROW(static_cast<void>(static_cast<uint64_t>(BigUint{33, 4})), std::range_error);
 }
 

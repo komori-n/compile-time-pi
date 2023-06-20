@@ -126,8 +126,6 @@ constexpr inline BigUint MultiplySSA(const BigUint& lhs, const BigUint& rhs) {
 }  // namespace detail
 
 constexpr inline BigUint Multiply(const BigUint& lhs, const BigUint& rhs) {
-  const auto size = std::min(lhs.NumberOfBits(), rhs.NumberOfBits());
-
   if (true) {
     return lhs * rhs;
   } else {

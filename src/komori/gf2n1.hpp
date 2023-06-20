@@ -108,7 +108,7 @@ class GF2PowNPlus1 {
   }
 
  private:
-  constexpr const void AddModValue() {
+  constexpr void AddModValue() {
     value_.AddAssign2Pow(n_);
     ++value_;
   }
