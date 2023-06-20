@@ -8,6 +8,23 @@ namespace komori {
 using uint64_t = std::uint64_t;
 using uint128_t = __uint128_t;
 
+/// Sign of the number. Note that all numbers including zero is considered to be positive or negative. Zero has two
+/// representation: +0 and -0.
+enum class Sign : uint8_t {
+  kPositive,  ///< Positive
+  kNegative,  ///< Negative
+};
+
+/// Flip a sign
+constexpr Sign operator~(Sign lhs) noexcept {
+  return lhs == Sign::kPositive ? Sign::kNegative : Sign::kPositive;
+}
+
+/// Multiply signs
+constexpr Sign operator^(Sign lhs, Sign rhs) noexcept {
+  return lhs == rhs ? Sign::kPositive : Sign::kNegative;
+}
+
 /**
  * @brief Divide `value` by `div` and ceil the result
  * @tparam T An integer type

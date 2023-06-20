@@ -13,23 +13,6 @@ namespace komori {
  */
 class BigFloat {
  public:
-  /// Sign of the number. Note that all numbers including zero is considered to be positive or negative. Zero has two
-  /// representation: +0 and -0.
-  enum class Sign : uint8_t {
-    kPositive,  ///< Positive
-    kNegative,  ///< Negative
-  };
-
-  /// Flip a sign
-  friend constexpr Sign operator~(Sign lhs) noexcept {
-    return lhs == Sign::kPositive ? Sign::kNegative : Sign::kPositive;
-  }
-
-  /// Multiply signs
-  friend constexpr Sign operator^(Sign lhs, Sign rhs) noexcept {
-    return lhs == rhs ? Sign::kPositive : Sign::kNegative;
-  }
-
   /**
    * @brief Constructor
    * @param precision The precision of the number
@@ -318,7 +301,7 @@ constexpr inline BigFloat operator/(BigFloat lhs, BigFloat rhs) {
 
 constexpr inline BigFloat SqrtInverse(BigFloat num) {
   const auto target_precision = num.GetPrecision();
-  if (num.GetSign() == BigFloat::Sign::kNegative) {
+  if (num.GetSign() == Sign::kNegative) {
     throw std::out_of_range("The number must not be negative");
   }
 

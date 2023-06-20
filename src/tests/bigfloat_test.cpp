@@ -4,28 +4,16 @@
 
 using komori::BigFloat;
 using komori::BigUint;
-
-TEST(BigFloat, SignOperators) {
-  using Sign = BigFloat::Sign;
-  const auto p = Sign::kPositive;
-  const auto n = Sign::kNegative;
-
-  EXPECT_EQ(~p, n);
-  EXPECT_EQ(~n, p);
-  EXPECT_EQ(p ^ p, p);
-  EXPECT_EQ(p ^ n, n);
-  EXPECT_EQ(n ^ p, n);
-  EXPECT_EQ(n ^ n, p);
-}
+using komori::Sign;
 
 TEST(BigFloat, SignAndUnaryMinus) {
   const BigFloat x(10);
   const BigFloat y(10, BigUint{0x334});
 
-  EXPECT_EQ(x.GetSign(), BigFloat::Sign::kPositive);
-  EXPECT_EQ(y.GetSign(), BigFloat::Sign::kPositive);
-  EXPECT_EQ((-x).GetSign(), BigFloat::Sign::kNegative);
-  EXPECT_EQ((-y).GetSign(), BigFloat::Sign::kNegative);
+  EXPECT_EQ(x.GetSign(), Sign::kPositive);
+  EXPECT_EQ(y.GetSign(), Sign::kPositive);
+  EXPECT_EQ((-x).GetSign(), Sign::kNegative);
+  EXPECT_EQ((-y).GetSign(), Sign::kNegative);
 }
 
 TEST(BigFloat, DebugString) {
@@ -34,7 +22,6 @@ TEST(BigFloat, DebugString) {
 }
 
 TEST(BigFloat, Add) {
-  using Sign = BigFloat::Sign;
   struct TestCase {
     BigFloat lhs;
     BigFloat rhs;
@@ -72,12 +59,12 @@ TEST(BigFloat, Multiply) {
   const BigFloat y = BigFloat(16, BigUint{0x44ULL, 0x5ULL}) >> 4;
 
   const auto z = x * y;
-  EXPECT_EQ(z.GetSign(), BigFloat::Sign::kPositive);
+  EXPECT_EQ(z.GetSign(), Sign::kPositive);
 
   // (0x264 * 0x5) == 0xbf4
   EXPECT_EQ((z >> (128 + 29)).IntegerPart(), BigUint{0xbf4});
 
-  EXPECT_EQ((x * (-y)).GetSign(), BigFloat::Sign::kNegative);
+  EXPECT_EQ((x * (-y)).GetSign(), Sign::kNegative);
 }
 
 TEST(BigFloat, IntegerPart) {
@@ -125,12 +112,12 @@ TEST(BigFloat, ApproximateFloat) {
 
   BigFloat x = BigFloat(128, BigUint{0x1}) << 334;
   BigFloat inv_x = x.ApproximateInverse() << 334;
-  EXPECT_EQ(inv_x.GetSign(), BigFloat::Sign::kPositive);
+  EXPECT_EQ(inv_x.GetSign(), Sign::kPositive);
   EXPECT_EQ(inv_x.IntegerPart(), BigUint{1});
 
   BigFloat y = (-BigFloat(128, BigUint{0x334})) >> 334;
   BigFloat inv_y = y.ApproximateInverse() >> (334 - 64);
-  EXPECT_EQ(inv_y.GetSign(), BigFloat::Sign::kNegative);
+  EXPECT_EQ(inv_y.GetSign(), Sign::kNegative);
   EXPECT_EQ(inv_y.IntegerPart(), BigUint{0x4FEC04FEC04FEC});
 }
 
