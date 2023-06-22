@@ -20,6 +20,14 @@ TEST(OutputOperator, BigUint) {
             "264264264264264264264264264264264264264264264");
 }
 
+TEST(OutputOperator, BigInt) {
+  const auto x = BigInt{0x38c497e5596ef57eULL, 0x4da120763f11e267ULL, 0xefdf8ULL};
+
+  EXPECT_EQ(ToString(BigInt{}), "0");
+  EXPECT_EQ(ToString(x), "334334334334334334334334334334334334334334334");
+  EXPECT_EQ(ToString(-x), "-334334334334334334334334334334334334334334334");
+}
+
 TEST(OutputOperator, BigFloat) {
   BigFloat x = BigFloat(128, BigInt{334334334334ULL}) / BigFloat(128, BigInt{1000000000ULL});
 

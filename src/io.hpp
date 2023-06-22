@@ -87,10 +87,16 @@ inline constexpr std::string ToString(const BigUint& num) {
   return detail::FractionalPartToString(std::move(f), digit_len);
 }
 
+inline constexpr std::string ToString(const BigInt& num) {
+  auto abs_string = ToString(num.Abs());
+  auto sign_string = num.GetSign() == Sign::kPositive ? "" : "-";
+  return sign_string + std::move(abs_string);
+}
+
 inline constexpr std::string ToString(const BigFloat& num) {
   constexpr double log2_10 = 3.321928094887362;
 
-  auto integer_part = num.IntegerPart().Abs();
+  auto integer_part = num.IntegerPart();
   auto fractional_part = num.FractionalPart();
 
   auto integer_part_str = ToString(integer_part);
