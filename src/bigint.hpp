@@ -6,12 +6,14 @@
 namespace komori {
 class BigInt {
  public:
-  constexpr BigInt(uint64_t value, Sign sign = Sign::kPositive) : value_{value}, sign_{sign} {}
-  constexpr BigInt(std::vector<uint64_t> values, Sign sign = Sign::kPositive)
-      : value_{std::move(values)}, sign_{sign} {}
-  constexpr BigInt(std::initializer_list<uint64_t> values, Sign sign = Sign::kPositive)
-      : value_{std::move(values)}, sign_{sign} {}
+  constexpr BigInt(uint64_t value, Sign sign) : value_{value}, sign_{sign} {}
+  constexpr BigInt(std::vector<uint64_t> values, Sign sign) : value_{std::move(values)}, sign_{sign} {}
+  constexpr BigInt(std::initializer_list<uint64_t> values, Sign sign) : value_{std::move(values)}, sign_{sign} {}
   constexpr BigInt(BigUint value, Sign sign) : value_{std::move(value)}, sign_{sign} {}
+  explicit constexpr BigInt(uint64_t value) : BigInt(value, Sign::kPositive) {}
+  explicit constexpr BigInt(std::vector<uint64_t> value) : BigInt(std::move(value), Sign::kPositive) {}
+  explicit constexpr BigInt(std::initializer_list<uint64_t> value) : BigInt(std::move(value), Sign::kPositive) {}
+  explicit constexpr BigInt(BigUint value) : BigInt(std::move(value), Sign::kPositive) {}
 
   constexpr BigInt() = default;
   constexpr BigInt(const BigInt&) = default;
