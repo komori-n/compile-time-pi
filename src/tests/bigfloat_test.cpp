@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "komori/bigfloat.hpp"
+#include "bigfloat.hpp"
 
 using komori::BigFloat;
 using komori::BigUint;

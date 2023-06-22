@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "komori/biguint.hpp"
+#include "biguint.hpp"
 
 namespace komori {
 class GF2PowNPlus1 {

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "komori/bigint.hpp"
+#include "bigint.hpp"
 
 using komori::BigInt;
 using komori::Sign;

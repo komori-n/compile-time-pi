@@ -3,10 +3,10 @@
 #include <iostream>
 #include <tuple>
 
-#include "komori/bigfloat.hpp"
-#include "komori/biguint.hpp"
-#include "komori/io.hpp"
-#include "komori/ssa.hpp"
+#include "bigfloat.hpp"
+#include "biguint.hpp"
+#include "io.hpp"
+#include "ssa.hpp"
 
 using komori::BigFloat;
 using komori::BigUint;

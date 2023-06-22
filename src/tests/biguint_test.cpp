@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "komori/biguint.hpp"
+#include "biguint.hpp"
 
 using komori::BigUint;
 

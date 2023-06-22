@@ -1,8 +1,8 @@
 #ifndef KOMORI_BIGFLOAT_HPP_
 #define KOMORI_BIGFLOAT_HPP_
 
-#include "komori/biguint.hpp"
-#include "komori/ssa.hpp"
+#include "biguint.hpp"
+#include "ssa.hpp"
 
 namespace komori {
 /**

@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "komori/bigfloat.hpp"
-#include "komori/biguint.hpp"
+#include "bigfloat.hpp"
+#include "biguint.hpp"
 
 namespace komori {
 namespace detail {

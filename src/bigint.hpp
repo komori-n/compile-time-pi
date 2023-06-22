@@ -1,7 +1,7 @@
 #ifndef KOMORI_BIGINT_HPP_
 #define KOMORI_BIGINT_HPP_
 
-#include "komori/biguint.hpp"
+#include "biguint.hpp"
 
 namespace komori {
 class BigInt {

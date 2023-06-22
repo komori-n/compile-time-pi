@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "komori/gf2n1.hpp"
+#include "gf2n1.hpp"
 
 using komori::BigUint;
 using komori::GF2PowNPlus1;

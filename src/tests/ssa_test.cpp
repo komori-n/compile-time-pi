@@ -2,7 +2,7 @@
 
 #include <array>
 #include <random>
-#include "komori/ssa.hpp"
+#include "ssa.hpp"
 
 using komori::BigUint;
 using komori::detail::SplittedInteger;

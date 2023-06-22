@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "komori/common.hpp"
+#include "common.hpp"
 
 using komori::Sign;
 

@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-#include "komori/biguint.hpp"
-#include "komori/gf2n1.hpp"
+#include "biguint.hpp"
+#include "gf2n1.hpp"
 
 namespace komori {
 namespace detail {

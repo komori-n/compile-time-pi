@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "komori/common.hpp"
+#include "common.hpp"
 
 namespace komori {
 class BigUint : public std::vector<uint64_t> {
