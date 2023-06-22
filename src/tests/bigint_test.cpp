@@ -3,12 +3,19 @@
 #include "bigint.hpp"
 
 using komori::BigInt;
+using komori::BigUint;
 using komori::Sign;
 
 TEST(BigInt, IsZero) {
   EXPECT_TRUE(BigInt{}.IsZero());
   EXPECT_FALSE(BigInt(0x334ULL).IsZero());
   EXPECT_FALSE(BigInt(0x334ULL, Sign::kNegative).IsZero());
+}
+
+TEST(BigInt, DebugString) {
+  EXPECT_EQ(BigInt{}.DebugString(), "+" + BigUint{}.DebugString());
+  EXPECT_EQ(BigInt(0x334).DebugString(), "+" + BigUint(0x334).DebugString());
+  EXPECT_EQ(BigInt(0x334, Sign::kNegative).DebugString(), "-" + BigUint(0x334).DebugString());
 }
 
 TEST(BigInt, Add) {

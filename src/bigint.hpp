@@ -22,6 +22,11 @@ class BigInt {
 
   constexpr bool IsZero() const noexcept { return value_.IsZero(); }
 
+  std::string DebugString() const {
+    const auto sign_string = (sign_ == Sign::kPositive) ? "+" : "-";
+    return sign_string + value_.DebugString();
+  }
+
   constexpr BigInt& operator+=(const BigInt& rhs) {
     if (sign_ == rhs.sign_) {
       value_ += rhs.value_;
