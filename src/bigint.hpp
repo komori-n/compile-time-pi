@@ -23,6 +23,10 @@ class BigInt {
   constexpr ~BigInt() = default;
 
   constexpr bool IsZero() const noexcept { return value_.IsZero(); }
+  constexpr Sign GetSign() const noexcept { return sign_; }
+  constexpr const BigUint& Abs() const noexcept { return value_; }
+
+  constexpr uint64_t NumberOfBits() const { return value_.NumberOfBits(); }
 
   std::string DebugString() const {
     const auto sign_string = (sign_ == Sign::kPositive) ? "+" : "-";

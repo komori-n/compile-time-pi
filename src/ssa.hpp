@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "bigint.hpp"
 #include "biguint.hpp"
 #include "gf2n1.hpp"
 
@@ -132,6 +133,12 @@ constexpr inline BigUint Multiply(const BigUint& lhs, const BigUint& rhs) {
     // Multiplication by SSA is disabled because it requires tremendous time
     return detail::MultiplySSA(lhs, rhs);
   }
+}
+
+constexpr inline BigInt Multiply(const BigInt& lhs, const BigInt& rhs) {
+  auto ans_value = Multiply(lhs.Abs(), rhs.Abs());
+  auto ans_sign = lhs.GetSign() ^ rhs.GetSign();
+  return {std::move(ans_value), ans_sign};
 }
 }  // namespace komori
 

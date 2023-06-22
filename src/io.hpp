@@ -53,8 +53,8 @@ constexpr inline std::string FractionalPartToString(BigFloat num, int64_t digit_
   if (digit_len <= 0) {
     return std::string{};
   } else if (digit_len <= 19) {
-    num *= BigFloat(orig_precision, Make10Pow(digit_len));
-    const auto value = static_cast<uint64_t>(num.IntegerPart());
+    num *= BigFloat(orig_precision, BigInt{Make10Pow(digit_len)});
+    const auto value = static_cast<uint64_t>(num.IntegerPart().Abs());
 
     return MakePaddedString(value, digit_len);
   }
@@ -63,7 +63,7 @@ constexpr inline std::string FractionalPartToString(BigFloat num, int64_t digit_
   const auto lower_part_len = digit_len - upper_part_len;
 
   auto upper_part_str = FractionalPartToString(num, upper_part_len);
-  num *= BigFloat(orig_precision, Make10Pow(upper_part_len));
+  num *= BigFloat(orig_precision, BigInt{Make10Pow(upper_part_len)});
   auto lower_part_str = FractionalPartToString(num.FractionalPart(), lower_part_len);
 
   return std::move(upper_part_str) + std::move(lower_part_str);
@@ -78,9 +78,9 @@ inline constexpr std::string ToString(const BigUint& num) {
   const auto digit_len = detail::Log10Int(num) + 1;
   const auto number_of_bits = num.NumberOfBits();
 
-  BigFloat b = BigFloat(number_of_bits + 10, detail::Make10Pow(digit_len));
+  BigFloat b = BigFloat(number_of_bits + 10, BigInt{detail::Make10Pow(digit_len)});
   BigFloat inv_b = Inverse(b);
-  BigFloat f = BigFloat(number_of_bits + 10, num) * inv_b;
+  BigFloat f = BigFloat(number_of_bits + 10, BigInt{num}) * inv_b;
   // Add `inv_b / 2` to round the result
   f = std::move(f) + (inv_b >> 2);
 
@@ -90,7 +90,7 @@ inline constexpr std::string ToString(const BigUint& num) {
 inline constexpr std::string ToString(const BigFloat& num) {
   constexpr double log2_10 = 3.321928094887362;
 
-  auto integer_part = num.IntegerPart();
+  auto integer_part = num.IntegerPart().Abs();
   auto fractional_part = num.FractionalPart();
 
   auto integer_part_str = ToString(integer_part);

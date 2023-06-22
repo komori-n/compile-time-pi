@@ -3,6 +3,7 @@
 #include "io.hpp"
 
 using komori::BigFloat;
+using komori::BigInt;
 using komori::BigUint;
 
 TEST(OutputOperator, BigUint) {
@@ -20,7 +21,7 @@ TEST(OutputOperator, BigUint) {
 }
 
 TEST(OutputOperator, BigFloat) {
-  BigFloat x = BigFloat(128, BigUint{334334334334ULL}) / BigFloat(128, BigUint{1000000000ULL});
+  BigFloat x = BigFloat(128, BigInt{334334334334ULL}) / BigFloat(128, BigInt{1000000000ULL});
 
   const auto s = ToString(x).substr(0, 20);
   EXPECT_TRUE(s == "334.3343343340000000" || s == "334.3343343339999999");
