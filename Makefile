@@ -10,7 +10,7 @@ TEST_OBJS = $(addprefix $(OBJDIR)/, $(notdir $(TEST_SRCS:.cpp=.o)))
 TEST_DEPS = $(TEST_OBJS:.o=.d)
 
 $(TARGET): $(OBJDIR)/main.o
-	$(COMPILER) -o $@ $^
+	$(COMPILER) $(CPPFLAGS) -o $@ $^
 
 $(TEST_TARGET): $(TEST_OBJS)
 	$(COMPILER) $(CPPFLAGS) $(INCLUDE) -o $@ $^ -lgtest -lgtest_main

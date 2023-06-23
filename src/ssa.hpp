@@ -113,7 +113,7 @@ class SplittedInteger {
 };
 
 constexpr inline BigUint MultiplySSA(const BigUint& lhs, const BigUint& rhs) {
-  const auto bit_len = std::max(lhs.NumberOfBits(), rhs.NumberOfBits()) * 64;
+  const auto bit_len = std::max(lhs.NumberOfBits(), rhs.NumberOfBits());
   const auto best_k = Best_k(bit_len);
 
   SplittedInteger l(lhs, best_k);
@@ -127,7 +127,8 @@ constexpr inline BigUint MultiplySSA(const BigUint& lhs, const BigUint& rhs) {
 }  // namespace detail
 
 constexpr inline BigUint Multiply(const BigUint& lhs, const BigUint& rhs) {
-  if (true) {
+  const auto number_of_bits = std::min(lhs.NumberOfBits(), rhs.NumberOfBits());
+  if (number_of_bits < 266'843) {
     return lhs * rhs;
   } else {
     // Multiplication by SSA is disabled because it requires tremendous time
