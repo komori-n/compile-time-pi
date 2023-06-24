@@ -207,6 +207,9 @@ class BigFloat {
     if (bit_width > 64) {
       tmp >>= bit_width - 64;
       exp += bit_width - 64;
+    } else if (bit_width < 64) {
+      tmp <<= 64 - bit_width;
+      exp -= 64 - bit_width;
     }
 
     if (exp % 2) {
