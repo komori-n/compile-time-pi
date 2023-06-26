@@ -5,9 +5,8 @@ This is a toy project that tries to calculate PI at compile time.
 ## How to Build
 
 You need to make a modified clang that has no limit on the number of
-constexpr-time calculations. Please see
-<https://github.com/ushitora-anqou/constexpr-nn/blob/master/clang.diff>
-for more detail.
+constexpr-time calculations. You need to compile clang from source with
+[this patch](infinite-constexpr.patch).
 
 Then, you can start calculating PI by just typing `make`. Note that this may
 require more than one hour depending on your environment, so keep patient.

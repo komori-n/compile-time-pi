@@ -1,0 +1,168 @@
+diff --git a/clang/include/clang/AST/APValue.h b/clang/include/clang/AST/APValue.h
+index 286c1a1b0..6f3c682be 100644
+--- a/clang/include/clang/AST/APValue.h
++++ b/clang/include/clang/AST/APValue.h
+@@ -150,8 +150,8 @@ public:
+ 
+   public:
+     LValueBase() : Local{} {}
+-    LValueBase(const ValueDecl *P, unsigned I = 0, unsigned V = 0);
+-    LValueBase(const Expr *P, unsigned I = 0, unsigned V = 0);
++    LValueBase(const ValueDecl *P, uint64_t I = 0, unsigned V = 0);
++    LValueBase(const Expr *P, uint64_t I = 0, unsigned V = 0);
+     static LValueBase getDynamicAlloc(DynamicAllocLValue LV, QualType Type);
+     static LValueBase getTypeInfo(TypeInfoLValue LV, QualType TypeInfo);
+ 
+@@ -172,7 +172,7 @@ public:
+ 
+     explicit operator bool() const;
+ 
+-    unsigned getCallIndex() const;
++    uint64_t getCallIndex() const;
+     unsigned getVersion() const;
+     QualType getTypeInfoType() const;
+     QualType getDynamicAllocType() const;
+@@ -189,7 +189,8 @@ public:
+   private:
+     PtrTy Ptr;
+     struct LocalState {
+-      unsigned CallIndex, Version;
++      uint64_t CallIndex;
++      unsigned Version;
+     };
+     union {
+       LocalState Local;
+@@ -482,7 +483,7 @@ public:
+   bool isLValueOnePastTheEnd() const;
+   bool hasLValuePath() const;
+   ArrayRef<LValuePathEntry> getLValuePath() const;
+-  unsigned getLValueCallIndex() const;
++  uint64_t getLValueCallIndex() const;
+   unsigned getLValueVersion() const;
+   bool isNullPointer() const;
+ 
+diff --git a/clang/lib/AST/APValue.cpp b/clang/lib/AST/APValue.cpp
+index 5b0a5e256..923ff98be 100644
+--- a/clang/lib/AST/APValue.cpp
++++ b/clang/lib/AST/APValue.cpp
+@@ -39,9 +39,9 @@ static_assert(
+         alignof(Type),
+     "Type is insufficiently aligned");
+ 
+-APValue::LValueBase::LValueBase(const ValueDecl *P, unsigned I, unsigned V)
++APValue::LValueBase::LValueBase(const ValueDecl *P, uint64_t I, unsigned V)
+     : Ptr(P ? cast<ValueDecl>(P->getCanonicalDecl()) : nullptr), Local{I, V} {}
+-APValue::LValueBase::LValueBase(const Expr *P, unsigned I, unsigned V)
++APValue::LValueBase::LValueBase(const Expr *P, uint64_t I, unsigned V)
+     : Ptr(P), Local{I, V} {}
+ 
+ APValue::LValueBase APValue::LValueBase::getDynamicAlloc(DynamicAllocLValue LV,
+@@ -105,7 +105,7 @@ QualType APValue::LValueBase::getType() const {
+   return Base->getType();
+ }
+ 
+-unsigned APValue::LValueBase::getCallIndex() const {
++uint64_t APValue::LValueBase::getCallIndex() const {
+   return (is<TypeInfoLValue>() || is<DynamicAllocLValue>()) ? 0
+                                                             : Local.CallIndex;
+ }
+@@ -987,7 +987,7 @@ ArrayRef<APValue::LValuePathEntry> APValue::getLValuePath() const {
+   return llvm::ArrayRef(LVal.getPath(), LVal.PathLength);
+ }
+ 
+-unsigned APValue::getLValueCallIndex() const {
++uint64_t APValue::getLValueCallIndex() const {
+   assert(isLValue() && "Invalid accessor");
+   return ((const LV *)(const char *)&Data)->Base.getCallIndex();
+ }
+diff --git a/clang/lib/AST/ExprConstant.cpp b/clang/lib/AST/ExprConstant.cpp
+index f2517de4a..95dc48f7b 100644
+--- a/clang/lib/AST/ExprConstant.cpp
++++ b/clang/lib/AST/ExprConstant.cpp
+@@ -493,7 +493,7 @@ namespace {
+   /// A reference to a particular call and its arguments.
+   struct CallRef {
+     CallRef() : OrigCallee(), CallIndex(0), Version() {}
+-    CallRef(const FunctionDecl *Callee, unsigned CallIndex, unsigned Version)
++    CallRef(const FunctionDecl *Callee, uint64_t CallIndex, unsigned Version)
+         : OrigCallee(Callee), CallIndex(CallIndex), Version(Version) {}
+ 
+     explicit operator bool() const { return OrigCallee; }
+@@ -511,7 +511,7 @@ namespace {
+     /// appear in the parameter map.
+     const FunctionDecl *OrigCallee;
+     /// The call index of the frame that holds the argument values.
+-    unsigned CallIndex;
++    uint64_t CallIndex;
+     /// The version of the parameters corresponding to this call.
+     unsigned Version;
+   };
+@@ -541,7 +541,7 @@ namespace {
+ 
+     // Note that we intentionally use std::map here so that references to
+     // values are stable.
+-    typedef std::pair<const void *, unsigned> MapKeyTy;
++    typedef std::pair<const void *, uint64_t> MapKeyTy;
+     typedef std::map<MapKeyTy, APValue> MapTy;
+     /// Temporaries - Temporary lvalues materialized within this stack frame.
+     MapTy Temporaries;
+@@ -550,7 +550,7 @@ namespace {
+     SourceLocation CallLoc;
+ 
+     /// Index - The call index of this call.
+-    unsigned Index;
++    uint64_t Index;
+ 
+     /// The stack of integers for tracking version numbers for temporaries.
+     SmallVector<unsigned, 2> TempVersionStack = {1};
+@@ -811,12 +811,12 @@ namespace {
+     unsigned CallStackDepth;
+ 
+     /// NextCallIndex - The next call index to assign.
+-    unsigned NextCallIndex;
++    uint64_t NextCallIndex;
+ 
+     /// StepsLeft - The remaining number of evaluation steps we're permitted
+     /// to perform. This is essentially a limit for the number of statements
+     /// we will evaluate.
+-    unsigned StepsLeft;
++    uint64_t StepsLeft;
+ 
+     /// Enable the experimental new constant interpreter. If an expression is
+     /// not supported by the interpreter, an error is triggered.
+@@ -1013,7 +1013,7 @@ namespace {
+     }
+ 
+     std::pair<CallStackFrame *, unsigned>
+-    getCallFrameAndDepth(unsigned CallIndex) {
++    getCallFrameAndDepth(uint64_t CallIndex) {
+       assert(CallIndex && "no call index in getCallFrameAndDepth");
+       // We will eventually hit BottomFrame, which has Index 1, so Frame can't
+       // be null in this loop.
+@@ -1033,7 +1033,7 @@ namespace {
+         FFDiag(S->getBeginLoc(), diag::note_constexpr_step_limit_exceeded);
+         return false;
+       }
+-      --StepsLeft;
++      // --StepsLeft;
+       return true;
+     }
+ 
+@@ -1056,7 +1056,7 @@ namespace {
+ 
+     /// Information about a stack frame for std::allocator<T>::[de]allocate.
+     struct StdAllocatorCaller {
+-      unsigned FrameIndex;
++      uint64_t FrameIndex;
+       QualType ElemType;
+       explicit operator bool() const { return FrameIndex != 0; };
+     };
+@@ -1559,7 +1559,7 @@ namespace {
+     const SubobjectDesignator &getLValueDesignator() const { return Designator;}
+     bool isNullPointer() const { return IsNullPtr;}
+ 
+-    unsigned getLValueCallIndex() const { return Base.getCallIndex(); }
++    uint64_t getLValueCallIndex() const { return Base.getCallIndex(); }
+     unsigned getLValueVersion() const { return Base.getVersion(); }
+ 
+     void moveInto(APValue &V) const {
